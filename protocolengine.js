@@ -1,6 +1,6 @@
-import b4a from 'b4a';
+import b4a from 'b4a'
 
-class ProtocolEngine {
+export default class ProtocolEngine {
   constructor(gameState, deck, peers, myPeerId) {
     this.gameState = gameState;
     this.deck = deck;
@@ -115,4 +115,4 @@ class ProtocolEngine {
     }
   }
 }
-}
+

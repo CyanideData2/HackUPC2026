@@ -1,4 +1,7 @@
-class Card {
+
+let PUBLIC_CARD_POINTS = null;
+
+export default class Card {
 
   static SUITS = [0, 1, 2, 3]
   static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] 
@@ -11,6 +14,10 @@ class Card {
     if (!Card.RANKS.includes(rank)) {
       throw new Error(`Invalid rank: ${rank}`)
     }
+    
+    if (!PUBLIC_CARD_POINTS) {
+            this._initializePoints();
+        }
 
     this.rank = rank
     this.suit = suit
@@ -20,6 +27,19 @@ class Card {
     this.x = point.x
     this.y = point.y
   }
+  
+  _initializePoints() {
+        if (typeof babyJub === 'undefined') {
+            throw new Error("babyJub library not found. Check your index.html script tag.");
+        }
+        
+        PUBLIC_CARD_POINTS = [];
+        for (let i = 1; i <= 52; i++) {
+            // Generate valid points on the curve: P = i * G
+            const pt = babyJub.mulPointEscal(babyJub.Base8, BigInt(i));
+            PUBLIC_CARD_POINTS.push(pt);
+        }
+    }
 
   // Compare this card to another
   compareTo(otherCard) {

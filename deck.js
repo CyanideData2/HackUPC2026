@@ -1,4 +1,7 @@
-class Deck {
+import Card from './card.js'
+
+
+export default class Deck {
 	static SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
 	static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] 
 	
@@ -7,7 +10,7 @@ class Deck {
 		
 		for (let i = 1; i <= 13; i++) {
 			for (let j = 0; j < 4; j++) {
-				this.cards.push(Card(i, j).point)
+				this.cards.push(new Card(i, j).point)
 			}
 		}
 	}
