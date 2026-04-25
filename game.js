@@ -46,7 +46,6 @@ class GameState {
     this.hand = []
     /** @type {{string: int}}*/
     this.handCount = {}
-    RenderScene(this)
   }
   startGame(hand) {
     this.reset()

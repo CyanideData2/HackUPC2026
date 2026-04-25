@@ -5,7 +5,7 @@ import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
 import Card from './card.js'
 import GameState from './game.js'
-import { RenderOtherPlayers, RenderScene } from './ui.js'
+import { RenderScene } from './ui.js'
 
 const { teardown } = Pear
 
@@ -15,9 +15,9 @@ let myPeerId = null
 /** @type GameState */
 let gameState = null
 
-// // TEMP visual-only debug peers. Delete these lines after manual UI testing.
-// const ENABLE_HARDCODED_VISUAL_PEERS = true
-// const HARDCODED_VISUAL_PEER_IDS = ['aa11bb', 'cc22dd', 'ee33ff', '112233', '445566']
+// TEMP visual-only debug peers. Delete these lines after manual UI testing.
+const ENABLE_HARDCODED_VISUAL_PEERS = true
+const HARDCODED_VISUAL_PEER_IDS = ['aa11bb', 'cc22dd', 'ee33ff', '112233', '445566']
 
 teardown(() => swarm.destroy())
 
@@ -30,19 +30,10 @@ swarm.on('connection', (peer) => {
   peer.on('error', (e) => {
     console.log(`Connection error: ${e}`)
     peers.delete(peerId)
-    if (gameState) {
-      gameState.setPeers([...peers.keys()])
-      RenderOtherPlayers(gameState)
-    }
   })
 
   updatePeersCount()
 
-  if (gameState) {
-    const allPeerIds = [...peers.keys()]
-    gameState.setPeers(allPeerIds)
-    RenderOtherPlayers(gameState)
-  }
 })
 
 swarm.on('update', updatePeersCount)
@@ -52,9 +43,6 @@ swarm.on('update', updatePeersCount)
  */
 function updatePeersCount() {
   document.querySelector('#peers-count').textContent = peers.size
-  if (gameState) {
-    RenderOtherPlayers(gameState)
-  }
 }
 
 /**
@@ -68,25 +56,43 @@ async function joinSwarm(topicBuffer) {
   await discovery.flushed()
 
   myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
-  const initialPeerIds = [...peers.keys()]
-  // if (ENABLE_HARDCODED_VISUAL_PEERS && initialPeerIds.length === 0) {
-  //   initialPeerIds.push(...HARDCODED_VISUAL_PEER_IDS)
-  // }
-  gameState = new GameState(myPeerId, initialPeerIds)
-
-  document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
+}
+async function updateGameListeners() {
+  var cards = document.getElementsByClassName("card");
+  for (const card of cards) {
+    card.addEventListener("click", async () => {
+      console.log(await swarm.status())
+    })
+  }
+}
+async function loadGame(topicBuffer) {
+  gameState = new GameState(myPeerId, [...peers.keys()])
   document.querySelector('#loading').classList.add('hidden')
+  document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
   document.querySelector('#game').classList.remove('hidden')
+
+  document.querySelector('#start-game').addEventListener("click", () => {
+    console.log(gameState)
+    gameState.startGame([new Card(5, "hearts")])
+    RenderScene(gameState)
+    updateGameListeners()
+    document.querySelector('#header').classList.add('hidden')
+    document.querySelector('#game-board').classList.remove('hidden')
+    document.querySelector('#game-hand').classList.remove('hidden')
+
+  })
+
 }
 
 /**
  * Creates a new game room
  */
-async function createChatRoom() {
+async function createCardRoom() {
   // const topicBuffer = crypto.randomBytes(32)
   const topicStr = "4d9aad75726aca3c94f6f3c8f0483eb1da408e79cadf83c5a2c0d7a2b42be724"
   const topicBuffer = b4a.from(topicStr, 'hex')
-  joinSwarm(topicBuffer)
+  await joinSwarm(topicBuffer)
+  loadGame(topicBuffer)
 }
 
 /**
@@ -198,7 +204,6 @@ function broadcastTurnResult(resolved) {
 function handleTurnUpdate(peerId, data) {
   if (data.peerIds) {
     gameState.setPeers(data.peerIds)
-    RenderOtherPlayers(gameState)
   }
   if (data.currentPlayerIndex !== undefined) {
     gameState.currentPlayerIndex = data.currentPlayerIndex
@@ -253,7 +258,7 @@ function castVote(vote) {
 }
 
 
-document.querySelector('#create-card-room').addEventListener('click', createChatRoom)
+document.querySelector('#create-card-room').addEventListener('click', createCardRoom)
 document.querySelector('#join-form').addEventListener('submit', joinCardRoom)
 
-export { playCard, castVote, gameState }
+export { playCard, castVote, gameState, swarm }

@@ -5,16 +5,13 @@ import GameState from "./game.js"
  *@param {GameState} state 
     */
 function RenderScene(state) {
-    let hand = ""
+    let hand_html = []
+    console.log(state)
     for (const card of state.hand) {
-        hand += `<span class="pcard-${card.toCode()} card"></span>`
+        hand_html += `<span class="pcard-${card.toCode()} card "></span>`
     }
-    document.querySelector("#game-hand").innerHTML = hand
-    RenderOtherPlayers(state)
-}
-export { RenderScene, RenderOtherPlayers }
+    document.querySelector("#game-hand").innerHTML = hand_html
 
-function RenderOtherPlayers(state) {
     const board = document.querySelector("#game-board")
     if (!board || !state || !Array.isArray(state.peerIds)) return
 
@@ -45,3 +42,4 @@ function RenderOtherPlayers(state) {
         board.appendChild(cell)
     }
 }
+export { RenderScene }
