@@ -3,7 +3,7 @@
 import Hyperswarm from 'hyperswarm'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import Card from './card.js'
+import { Card, getDeck } from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
 
@@ -23,6 +23,7 @@ teardown(() => swarm.destroy())
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   peers.set(peerId, peer)
+  console.log(peers)
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -58,12 +59,14 @@ async function joinSwarm() {
 async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
   for (const card of cards) {
-    card.addEventListener("click", async () => {
-      console.log(await swarm.status())
+    card.addEventListener("click", async (e) => {
+      //find card name
+      //find card in hand
     })
   }
 }
 async function startGame() {
+  gameState = new GameState(myPeerId, [...peers.keys()])
   gameState.startGame([new Card(5, "hearts")])
   RenderScene(gameState)
   updateGameListeners()
@@ -71,8 +74,7 @@ async function startGame() {
   document.querySelector('#game-board').classList.remove('hidden')
   document.querySelector('#game-hand').classList.remove('hidden')
 }
-async function loadGame() {
-  gameState = new GameState(myPeerId, [...peers.keys()])
+async function loadLobby() {
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
   document.querySelector('#game').classList.remove('hidden')
@@ -103,7 +105,7 @@ async function unloadGame() {
 async function createCardRoom() {
   topicBuffer = crypto.randomBytes(32)
   await joinSwarm(topicBuffer)
-  loadGame(topicBuffer)
+  loadLobby(topicBuffer)
 }
 
 /**
@@ -114,7 +116,7 @@ async function joinCardRoom(e) {
   const topicStr = document.querySelector('#join-card-room-id').value
   topicBuffer = b4a.from(topicStr, 'hex')
   await joinSwarm(topicBuffer)
-  loadGame(topicBuffer)
+  loadLobby(topicBuffer)
 }
 
 /**
@@ -143,7 +145,7 @@ function onMessageReceived(peerId, message) {
         break
       case 'start':
         console.log(gameState)
-        if (!gameState.ongoing) {
+        if (gameState == null || !gameState.ongoing) {
           startGame()
         }
         break
@@ -232,12 +234,11 @@ function handleTurnUpdate(peerId, data) {
 /**
  * Attempts to play a card
  */
-function playCard(rank, suit) {
+function playCard(card) {
   if (!gameState.isMyTurn) {
     return { success: false, reason: 'Not your turn' }
   }
 
-  const card = new Card(rank, suit)
   const result = gameState.submitCard(card, myPeerId)
 
   if (result.accepted) {
