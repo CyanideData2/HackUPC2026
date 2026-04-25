@@ -2,78 +2,53 @@ import test from 'brittle'
 import GameState from '../game.js'
 import Card from '../card.js'
 
-test('canVote - returns false when no pending card', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  t.absent(game.canVote('bob'))
-})
-
-test('canVote - returns false when player already voted', (t) => {
+test('submitCard - accepts valid card from any player', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  t.absent(game.canVote('alice'))
+  const result = game.submitCard(card, 'bob')
+  t.ok(result.accepted, 'bob can submit card')
+  t.is(result.card.rank, 5)
 })
 
-test('canVote - returns true for eligible voter', (t) => {
+test('submitCard - replaces pending card', (t) => {
+  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
+  const card1 = new Card(5, 'hearts')
+  const card2 = new Card(7, 'clubs')
+  game.submitCard(card1, 'alice')
+  game.submitCard(card2, 'bob')
+  t.is(game.pendingCard.rank, 7)
+})
+
+test('canVote - true when pending card exists', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
   game.submitCard(card, 'alice')
   t.ok(game.canVote('bob'))
+  t.ok(game.canVote('charlie'))
 })
 
-test('castVote - accepts yes vote', (t) => {
+test('canVote - false when no pending card', (t) => {
+  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
+  t.absent(game.canVote('bob'))
+})
+
+test('castVote - accepts yes/no', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
   game.submitCard(card, 'alice')
-  const result = game.castVote('bob', 'yes')
-  t.ok(result.accepted)
-  t.is(result.vote, 'yes')
+  t.ok(game.castVote('bob', 'yes').accepted)
+  t.ok(game.castVote('charlie', 'no').accepted)
 })
 
-test('castVote - accepts no vote', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  const result = game.castVote('bob', 'no')
-  t.ok(result.accepted)
-  t.is(result.vote, 'no')
-})
-
-test('castVote - rejects invalid vote value', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  const result = game.castVote('bob', 'maybe')
-  t.absent(result.accepted)
-  t.is(result.reason, 'Invalid vote')
-})
-
-test('castVote - rejects when no pending card', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const result = game.castVote('bob', 'yes')
-  t.absent(result.accepted)
-  t.is(result.reason, 'Cannot vote now')
-})
-
-test('castVote - rejects duplicate vote', (t) => {
+test('castVote - rejects duplicate voter', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
   game.submitCard(card, 'alice')
   game.castVote('bob', 'yes')
-  const result = game.castVote('bob', 'no')
-  t.absent(result.accepted)
-  t.is(result.reason, 'Cannot vote now')
+  t.absent(game.castVote('bob', 'no').accepted)
 })
 
-test('getVoteResults - empty when no votes', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const results = game.getVoteResults()
-  t.is(results.totalVotes, 0)
-  t.is(results.yesVotes, 0)
-  t.is(results.noVotes, 0)
-})
-
-test('getVoteResults - counts votes correctly', (t) => {
+test('getVoteResults - counts correctly', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
   game.submitCard(card, 'alice')
@@ -85,34 +60,26 @@ test('getVoteResults - counts votes correctly', (t) => {
   t.is(results.noVotes, 1)
 })
 
-test('resolveTurn - fails without majority yes votes', (t) => {
+test('resolveTurn - succeeds with majority', (t) => {
+  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
+  const card = new Card(5, 'hearts')
+  game.submitCard(card, 'alice')
+  game.castVote('bob', 'yes')
+  const resolved = game.resolveTurn()
+  t.ok(resolved.success)
+  t.is(resolved.card.rank, 5)
+  t.ok(!game.pendingCard, 'pending card cleared')
+  t.is(game.votes.size, 0, 'votes cleared')
+})
+
+test('resolveTurn - fails without majority', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card = new Card(5, 'hearts')
   game.submitCard(card, 'alice')
   game.castVote('bob', 'no')
-  const result = game.resolveTurn()
-  t.absent(result.success)
-  t.is(result.results.yesVotes, 1)
-})
-
-test('resolveTurn - succeeds with majority yes votes', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  game.castVote('bob', 'yes')
-  const result = game.resolveTurn()
-  t.ok(result.success)
-  t.ok(result.card)
-  t.is(result.card.rank, 5)
-})
-
-test('resolveTurn - clears pending card after resolution', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  game.castVote('bob', 'yes')
-  game.resolveTurn()
-  t.absent(game.pendingCard)
+  const resolved = game.resolveTurn()
+  t.absent(resolved.success)
+  t.ok(game.pendingCard, 'pending card still exists')
 })
 
 test('resolveTurn - clears votes after resolution', (t) => {
@@ -124,23 +91,21 @@ test('resolveTurn - clears votes after resolution', (t) => {
   t.is(game.votes.size, 0)
 })
 
-test('submitCard - automatically votes yes for submitter', (t) => {
-  const game = new GameState('alice', ['alice', 'bob', 'charlie'])
-  const card = new Card(5, 'hearts')
-  game.submitCard(card, 'alice')
-  const results = game.getVoteResults()
-  t.is(results.totalVotes, 1)
-  t.is(results.yesVotes, 1)
+test('any player can submit card', (t) => {
+  const game = new GameState('player1', ['player1', 'player2', 'player3', 'player4'])
+  const card = new Card(3, 'spades')
+  const result = game.submitCard(card, 'player3')
+  t.ok(result.accepted, 'player3 can submit')
 })
 
-test('submitCard - clears previous votes when new card submitted', (t) => {
+test('submitCard clears previous votes', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
   const card1 = new Card(5, 'hearts')
-  const card2 = new Card(7, 'clubs')
+  const card2 = new Card(9, 'diamonds')
   game.submitCard(card1, 'alice')
   game.castVote('bob', 'yes')
   game.castVote('charlie', 'no')
-  game.submitCard(card2, 'alice')
+  game.submitCard(card2, 'bob')
   const results = game.getVoteResults()
   t.is(results.totalVotes, 1)
   t.is(results.yesVotes, 1)

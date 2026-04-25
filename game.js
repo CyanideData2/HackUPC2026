@@ -1,5 +1,4 @@
 import Card from './card.js'
-import { RenderScene } from './ui.js'
 
 /**
  * @typedef {Object} VoteResults
@@ -33,63 +32,24 @@ class GameState {
   constructor(peerId, peerIds = []) {
     this.peerId = peerId
     this.peerIds = peerIds
-    this.currentPlayerIndex = 0
     this.playedCards = []
-
     this.pendingCard = null
-    /** Peer that intiated the vote */
-    this.pendingPeer = null
-
     this.votes = new Map()
     this.voteTimeout = null
-    /** @type {Card[]}*/
-    this.hand = []
-    /** @type {{string: int}}*/
-    this.handCount = {}
-    RenderScene(this)
-  }
-  startGame(hand) {
-    this.reset()
-    this.handCount = this.peerIds.reduce((accDict, id) => accDict.push({ id: 5 }), {})
-    this.hand = hand
   }
 
-  /**
-   * Gets the current player's ID
-   */
-  get currentPlayer() {
-    return this.peerIds[this.currentPlayerIndex]
-  }
-
-  /**
-   * Checks if it's the local peer's turn
-   */
-  get isMyTurn() {
-    return this.currentPlayer === this.peerId
-  }
-
-  /**
-   * Updates the list of peers
-   */
   setPeers(peerIds) {
     this.peerIds = peerIds
-    if (this.currentPlayerIndex >= peerIds.length) {
-      this.currentPlayerIndex = 0
-    }
   }
 
   /**
-   * Verifies if a player can play a card
+   * Verifies if a card can be played
    */
-  verifyTurn(card, playerId) {
-    if (playerId !== this.currentPlayer) {
-      return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
-    }
-
+  verifyTurn(card) {
     if (!card || !(card instanceof Card)) {
       return { valid: false, reason: 'Invalid card' }
     }
-    return { valid: true, gameOver: this.playedCards.length + this.hand.length + sum(this.handCount.values) >= 52 }
+    return { valid: true }
   }
 
   /**
@@ -102,15 +62,15 @@ class GameState {
   }
 
   /**
-   * Attempts to submit a card for the current turn
+   * Attempts to submit a card
    */
   submitCard(card, playerId) {
-    if (!this.verifyTurn(card, playerId).valid) {
-      return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
+    const verification = this.verifyTurn(card)
+    if (!verification.valid) {
+      return { accepted: false, reason: verification.reason }
     }
 
     this.pendingCard = card
-    this.pendingPeer = playerId
     this.votes.clear()
     this.votes.set(playerId, 'yes')
 
@@ -130,7 +90,7 @@ class GameState {
     }
 
     this.votes.set(playerId, vote)
-    return { accepted: true, voteCount: this.votes.length }
+    return { accepted: true, voteCount: this.votes.size }
   }
 
   /**
@@ -149,30 +109,21 @@ class GameState {
   }
 
   /**
-   * Resolves the turn based on votes
+   * Resolves the current pending card based on votes
    */
   resolveTurn() {
     const results = this.getVoteResults()
     const majorityRequired = Math.floor(this.peerIds.length / 2) + 1
 
     if (results.yesVotes >= majorityRequired && this.pendingCard) {
-      this.playedCards.push(this.pendingCard)
-      this.handCount[this.pendingPeer] -= 1
-      this.advanceTurn()
+      const card = this.pendingCard
+      this.playedCards.push(card)
+      this.pendingCard = null
+      this.votes.clear()
       return { success: true, card, results }
     }
 
     return { success: false, results }
-  }
-
-  /**
-   * Moves to the next player's turn
-   */
-  advanceTurn() {
-    this.pendingCard = null
-    this.pendingPeer = null
-    this.votes.clear()
-    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.peerIds.length
   }
 
   /**
@@ -182,7 +133,6 @@ class GameState {
     this.playedCards = []
     this.pendingCard = null
     this.votes.clear()
-    this.currentPlayerIndex = 0
   }
 }
 
