@@ -6,8 +6,8 @@ import b4a from 'b4a'
 import { Card, getDeck } from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
-import ProtocolEngine from './protocolEngine.js'
-import Deck from './deck.js'
+//import ProtocolEngine from './protocolEngine.js'
+//import Deck from './deck.js'
 
 const { teardown } = Pear
 
@@ -71,11 +71,11 @@ async function updateGameListeners() {
 
 async function startGame() {
   gameState = new GameState(myPeerId, [...peers.keys()])
-  const deck = new Deck()
-  protocolEngine = new ProtocolEngine(gameState, deck, peers, myPeerId)
+  //const deck = new Deck()
+  //protocolEngine = new ProtocolEngine(gameState, deck, peers, myPeerId)
   
-  protocolEngine.initiateShuffle();
-  console.log('Shuffling deck with peers')
+  //protocolEngine.initiateShuffle();
+  //console.log('Shuffling deck with peers')
   
   gameState.startGame([new Card(5, "hearts")])
   RenderScene(gameState)
