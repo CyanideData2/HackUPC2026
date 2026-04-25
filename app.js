@@ -84,7 +84,7 @@ async function joinSwarm(topicBuffer) {
  */
 async function createChatRoom() {
   // const topicBuffer = crypto.randomBytes(32)
-  topicStr = "4d9aad75726aca3c94f6f3c8f0483eb1da408e79cadf83c5a2c0d7a2b42be724"
+  const topicStr = "4d9aad75726aca3c94f6f3c8f0483eb1da408e79cadf83c5a2c0d7a2b42be724"
   const topicBuffer = b4a.from(topicStr, 'hex')
   joinSwarm(topicBuffer)
 }
