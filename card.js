@@ -1,6 +1,7 @@
 class Card {
-  static SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
-  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+  static SUITS = [0, 1, 2, 3]
+  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] 
 
   constructor(rank, suit) {
     if (!Card.SUITS.includes(suit)) {
@@ -13,6 +14,11 @@ class Card {
 
     this.rank = rank
     this.suit = suit
+    this.id = suit*13 + rank
+    
+    const point = PUBLIC_CARD_POINTS[this.id]
+    this.x = point.x
+    this.y = point.y
   }
 
   // Compare this card to another

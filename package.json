@@ -23,6 +23,9 @@
   },
   "dependencies": {
     "b4a": "^1.8.0",
+    "circom": "^0.5.46",
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
     "hypercore-crypto": "^3.6.1",
     "hyperswarm": "^4.17.0",
     "pear-bridge": "^1.2.1",
@@ -30,6 +33,7 @@
     "pear-messages": "^1.0.3",
     "pear-pipe": "^1.0.1",
     "pear-updates": "^1.0.1",
-    "pear-wakeups": "^1.0.0"
+    "pear-wakeups": "^1.0.0",
+    "snarkjs": "^0.7.6"
   }
 }

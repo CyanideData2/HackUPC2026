@@ -6,6 +6,8 @@ import b4a from 'b4a'
 import Card from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
+import ProtocolEngine from './protocolEngine.js'
+import Deck from './deck.js'
 
 const { teardown } = Pear
 
@@ -14,6 +16,7 @@ const peers = new Map()
 let myPeerId = null
 /** @type GameState */
 let gameState = null
+let protocolEngine = null
 
 // TEMP visual-only debug peers. Delete these lines after manual UI testing.
 const ENABLE_HARDCODED_VISUAL_PEERS = true
@@ -65,13 +68,20 @@ async function updateGameListeners() {
     })
   }
 }
-async function loadGame(topicBuffer) {
+async function loadGame(topicBuffer) {	
   gameState = new GameState(myPeerId, [...peers.keys()])
+  const deck = new Deck()
+  protocolEngine = new ProtocolEngine(gameState, deck, peers, myPeerId)
+  
+  
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
   document.querySelector('#game').classList.remove('hidden')
 
   document.querySelector('#start-game').addEventListener("click", () => {
+	protocolEngine.initiateShuffle();
+	console.log('Shuffling deck with peers')
+	  
     console.log(gameState)
     gameState.startGame([new Card(5, "hearts")])
     RenderScene(gameState)
@@ -129,6 +139,12 @@ function onMessageReceived(peerId, message) {
       case 'turn':
         handleTurnUpdate(peerId, data)
         break
+      case 'PROTOCOL_SHUFFLE_STEP':
+		protocolEngine.handleShuffleStep(data.deck)
+		break
+	  case 'PROTOCOL_SHUFFLE_FINAL':
+		protocolEngine.handleShuffleFinal(data.deck)
+		break
       default:
         console.warn(`Unknown message type "${data.type}" from ${peerId}. Ignoring.`)
         break
