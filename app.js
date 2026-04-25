@@ -15,6 +15,10 @@ let myPeerId = null
 /** @type GameState */
 let gameState = null
 
+// // TEMP visual-only debug peers. Delete these lines after manual UI testing.
+// const ENABLE_HARDCODED_VISUAL_PEERS = true
+// const HARDCODED_VISUAL_PEER_IDS = ['aa11bb', 'cc22dd', 'ee33ff', '112233', '445566']
+
 teardown(() => swarm.destroy())
 
 swarm.on('connection', (peer) => {
@@ -63,7 +67,11 @@ async function joinSwarm(topicBuffer) {
   await discovery.flushed()
 
   myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
-  gameState = new GameState(myPeerId, [...peers.keys()])
+  const initialPeerIds = [...peers.keys()]
+  // if (ENABLE_HARDCODED_VISUAL_PEERS && initialPeerIds.length === 0) {
+  //   initialPeerIds.push(...HARDCODED_VISUAL_PEER_IDS)
+  // }
+  gameState = new GameState(myPeerId, initialPeerIds)
 
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector('#game').classList.remove('hidden')
