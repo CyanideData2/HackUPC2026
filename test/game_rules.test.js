@@ -1,4 +1,4 @@
-const { createHash, generateSet } = require('./game_rules');
+import { createHash, generateSet } from '../encrypt/game_rules.js';
 
 describe('createHash', () => {
   it('should generate consistent hash for same input', () => {

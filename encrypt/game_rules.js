@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+import crypto from 'crypto'
 
 const secret = "mysecretkey"
 const NumberOfCards = 52
@@ -6,11 +6,11 @@ const NumberOfStatesCardsInHand = 4
 const nameofcards = ["K","A","2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q"]
 
 function createHash(currentCard, previousCard, numCardsInHand, action){
-    action_standardized = action.toLowerCase().replace(/\s+/g, ' ').trim()
-    currentCard = String(currentCard).padStart(2, '0');
-    previousCard = String(previousCard).padStart(2, '0');
-    numCardsInHand = String(numCardsInHand);
-    stat = currentCard + previousCard + numCardsInHand + action_standardized
+    const action_standardized = action.toLowerCase().replace(/\s+/g, ' ').trim()
+    const currentCardStr = String(currentCard).padStart(2, '0');
+    const previousCardStr = String(previousCard).padStart(2, '0');
+    const numCardsInHandStr = String(numCardsInHand);
+    const stat = currentCardStr + previousCardStr + numCardsInHandStr + action_standardized
 
     return crypto.createHmac('sha256', secret)
         .update(stat)
@@ -25,10 +25,10 @@ function generateSet(){
                 continue
             }
             for (let numCardsInHand = 0; numCardsInHand < NumberOfStatesCardsInHand; numCardsInHand++) {
-                ranki = currentCard%13
-                suiti = Math.floor((currentCard-1)/13)
-                rankj = previousCard%13
-                suitj = Math.floor((previousCard-1)/13)
+                let ranki = currentCard % 13
+                let suiti = Math.floor((currentCard-1)/13)
+                let rankj = previousCard % 13
+                let suitj = Math.floor((previousCard-1)/13)
                 if (numCardsInHand === 0) { set.push(createHash(currentCard, previousCard, numCardsInHand, "mao"))}
                 else if (numCardsInHand === 1) { set.push(createHash(currentCard, previousCard, numCardsInHand, "hit card"))}
                 else if (numCardsInHand === 2) { set.push(createHash(currentCard, previousCard, numCardsInHand, "fregar les cartes"))}
@@ -67,10 +67,7 @@ function generateSet(){
     return set
 }
 
-module.exports = {
-    createHash,
-    generateSet
-}
+export { createHash, generateSet }
 
 console.log("Generating set...")
 const set = generateSet()
