@@ -58,8 +58,9 @@ async function joinSwarm() {
 async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
   for (const card of cards) {
-    card.addEventListener("click", async () => {
-      console.log(await swarm.status())
+    card.addEventListener("click", async (e) => {
+      //find card name
+      //find card in hand
     })
   }
 }
@@ -232,12 +233,11 @@ function handleTurnUpdate(peerId, data) {
 /**
  * Attempts to play a card
  */
-function playCard(rank, suit) {
+function playCard(card) {
   if (!gameState.isMyTurn) {
     return { success: false, reason: 'Not your turn' }
   }
 
-  const card = new Card(rank, suit)
   const result = gameState.submitCard(card, myPeerId)
 
   if (result.accepted) {
