@@ -43,6 +43,7 @@ function checkRules(id, actions) {
 }
 
 class GameState {
+  /** @param {Deck} deck */
   constructor(peerCount, myPosition, deck) {
     this.ongoing = false
     this.myPosition = myPosition
@@ -64,6 +65,10 @@ class GameState {
     this.deck = deck
   }
   startGame() {
+    this.reset()
+    this.ongoing = true
+    this.handCount = Array(this.peerCount).fill(3);
+
     let i = 0
     for (; i < this.myPosition; i++) {
       this.deck.deal()
@@ -80,9 +85,6 @@ class GameState {
       this.deck.deal()
     }
 
-    this.reset()
-    this.ongoing = true
-    this.handCount = Array(this.peerCount).fill(3);
   }
 
   /**
