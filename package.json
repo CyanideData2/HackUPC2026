@@ -25,6 +25,7 @@
     "b4a": "^1.8.0",
     "hypercore-crypto": "^3.6.1",
     "hyperswarm": "^4.17.0",
+    "jsdoc": "^4.0.5",
     "pear-bridge": "^1.2.1",
     "pear-electron": "^1.7.28",
     "pear-messages": "^1.0.3",
