@@ -57,10 +57,9 @@ async function joinSwarm(topicBuffer) {
   myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
   gameState = new GameState(myPeerId, [...peers.keys()])
 
+  document.querySelector("#game-id").innerHTML = topicBuffer
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector('#game').classList.remove('hidden')
-  console.log(gameState)
-  RenderScene(gameState)
 }
 
 /**
@@ -151,14 +150,10 @@ function handleVote(voterId, data) {
 
   const result = gameState.castVote(voterId, data.vote)
 
-  if (result.accepted) {
-    const results = gameState.getVoteResults()
-    const peerCount = peers.size
-    const majorityRequired = Math.floor(peerCount / 2) + 1
-
-    if (results.totalVotes >= peerCount) {
-      const resolved = gameState.resolveTurn()
-      broadcastTurnResult(resolved)
+  if (result.accepted && result.voteCount >= peerCount) {
+    const resolved = gameState.resolveTurn()
+    if (!resolved.success) {
+      console.warn("turn couldn't resolve")
     }
   }
 }

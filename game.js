@@ -34,11 +34,23 @@ class GameState {
     this.peerIds = peerIds
     this.currentPlayerIndex = 0
     this.playedCards = []
+
     this.pendingCard = null
+    /** Peer that intiated the vote */
+    this.pendingPeer = null
+
     this.votes = new Map()
     this.voteTimeout = null
     /** @type {Card[]}*/
-    this.hand = [new Card(5, 'hearts'), new Card(5, 'hearts'), new Card(5, 'hearts'), new Card(5, 'hearts')]
+    this.hand = []
+    /** @type {{string: int}}*/
+    this.handCount = {}
+    RenderScene(this)
+  }
+  startGame(hand) {
+    this.reset()
+    this.handCount = this.peerIds.reduce((accDict, id) => accDict.push({ id: 5 }), {})
+    this.hand = hand
   }
 
   /**
@@ -76,8 +88,7 @@ class GameState {
     if (!card || !(card instanceof Card)) {
       return { valid: false, reason: 'Invalid card' }
     }
-
-    return { valid: true }
+    return { valid: true, gameOver: this.playedCards.length + this.hand.length + sum(this.handCount.values) >= 52 }
   }
 
   /**
@@ -98,6 +109,7 @@ class GameState {
     }
 
     this.pendingCard = card
+    this.pendingPeer = playerId
     this.votes.clear()
     this.votes.set(playerId, 'yes')
 
@@ -117,7 +129,7 @@ class GameState {
     }
 
     this.votes.set(playerId, vote)
-    return { accepted: true, vote }
+    return { accepted: true, voteCount: this.votes.length }
   }
 
   /**
@@ -143,8 +155,8 @@ class GameState {
     const majorityRequired = Math.floor(this.peerIds.length / 2) + 1
 
     if (results.yesVotes >= majorityRequired && this.pendingCard) {
-      const card = this.pendingCard
-      this.playedCards.push(card)
+      this.playedCards.push(this.pendingCard)
+      this.handCount[this.pendingPeer] -= 1
       this.advanceTurn()
       return { success: true, card, results }
     }
@@ -157,6 +169,7 @@ class GameState {
    */
   advanceTurn() {
     this.pendingCard = null
+    this.pendingPeer = null
     this.votes.clear()
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.peerIds.length
   }
