@@ -1,4 +1,5 @@
 import Card from './card.js'
+import { RenderScene } from './ui.js'
 
 /**
  * @typedef {Object} VoteResults

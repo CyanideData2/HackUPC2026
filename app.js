@@ -24,6 +24,7 @@ teardown(() => swarm.destroy())
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   peers.set(peerId, peer)
+  console.log("new peer!")
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -73,7 +74,7 @@ async function joinSwarm(topicBuffer) {
   // }
   gameState = new GameState(myPeerId, initialPeerIds)
 
-  document.querySelector("#game-id").innerHTML = topicBuffer
+  document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector('#game').classList.remove('hidden')
 }
