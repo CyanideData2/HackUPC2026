@@ -1,6 +1,6 @@
 class Card {
   static SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
-  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] 
+  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
   constructor(rank, suit) {
     if (!Card.SUITS.includes(suit)) {
@@ -31,4 +31,11 @@ class Card {
   toString() {
     return `${this.rank} of ${this.suit}`
   }
+  toCode() {
+    highs = ['j', 'q', 'k']
+    if (self.rank > 10) {
+      return "" + highs[self.rank - 11] + self.suit[0]
+    } else return "" + self.rank + self.suit[0]
+  }
 }
+export default Card

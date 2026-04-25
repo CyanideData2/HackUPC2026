@@ -28,40 +28,21 @@ import Card from './card.js'
  * @property {Card} [card] - The card that was played
  */
 
-/**
- * Manages game state including turn tracking and voting
- */
 class GameState {
-  /**
-   * @param {string} peerId - The local peer's ID
-   * @param {string[]} [peerIds=[]] - Array of all peer IDs
-   */
   constructor(peerId, peerIds = []) {
-    /** @type {string} */
     this.peerId = peerId
-
-    /** @type {string[]} */
     this.peerIds = peerIds
-
-    /** @type {number} */
     this.currentPlayerIndex = 0
-
-    /** @type {Card[]} */
     this.playedCards = []
-
-    /** @type {Card|null} */
     this.pendingCard = null
-
-    /** @type {Map<string, string>} */
     this.votes = new Map()
-
-    /** @type {NodeJS.Timeout|null} */
     this.voteTimeout = null
+    /** @type {Card[]}*/
+    this.hand = [Card(5, 'hearts'), Card(5, 'hearts'), Card(5, 'hearts'), Card(5, 'hearts')]
   }
 
   /**
    * Gets the current player's ID
-   * @returns {string}
    */
   get currentPlayer() {
     return this.peerIds[this.currentPlayerIndex]
@@ -69,7 +50,6 @@ class GameState {
 
   /**
    * Checks if it's the local peer's turn
-   * @returns {boolean}
    */
   get isMyTurn() {
     return this.currentPlayer === this.peerId
@@ -77,7 +57,6 @@ class GameState {
 
   /**
    * Updates the list of peers
-   * @param {string[]} peerIds - New list of peer IDs
    */
   setPeers(peerIds) {
     this.peerIds = peerIds
@@ -88,9 +67,6 @@ class GameState {
 
   /**
    * Verifies if a player can play a card
-   * @param {Card} card - The card to play
-   * @param {string} playerId - The player's ID
-   * @returns {VerificationResult}
    */
   verifyTurn(card, playerId) {
     if (playerId !== this.currentPlayer) {
@@ -106,8 +82,6 @@ class GameState {
 
   /**
    * Checks if a peer can vote
-   * @param {string} playerId - The peer's ID
-   * @returns {boolean}
    */
   canVote(playerId) {
     if (this.pendingCard === null) return false
@@ -117,14 +91,10 @@ class GameState {
 
   /**
    * Attempts to submit a card for the current turn
-   * @param {Card} card - The card to play
-   * @param {string} playerId - The player's ID
-   * @returns {SubmissionResult}
    */
   submitCard(card, playerId) {
-    const verification = this.verifyTurn(card, playerId)
-    if (!verification.valid) {
-      return { accepted: false, ...verification }
+    if (!this.verifyTurn(card, playerId).valid) {
+      return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
     }
 
     this.pendingCard = card
@@ -136,9 +106,6 @@ class GameState {
 
   /**
    * Casts a vote on the pending card
-   * @param {string} playerId - The voter's ID
-   * @param {'yes'|'no'} vote - The vote
-   * @returns {{accepted: boolean, reason?: string}}
    */
   castVote(playerId, vote) {
     if (!this.canVote(playerId)) {
@@ -155,7 +122,6 @@ class GameState {
 
   /**
    * Gets current vote tally
-   * @returns {VoteResults}
    */
   getVoteResults() {
     const voteValues = [...this.votes.values()]
@@ -171,16 +137,16 @@ class GameState {
 
   /**
    * Resolves the turn based on votes
-   * @returns {ResolutionResult}
    */
   resolveTurn() {
     const results = this.getVoteResults()
     const majorityRequired = Math.floor(this.peerIds.length / 2) + 1
 
     if (results.yesVotes >= majorityRequired && this.pendingCard) {
-      this.playedCards.push(this.pendingCard)
+      const card = this.pendingCard
+      this.playedCards.push(card)
       this.advanceTurn()
-      return { success: true, card: this.pendingCard, results }
+      return { success: true, card, results }
     }
 
     return { success: false, results }
