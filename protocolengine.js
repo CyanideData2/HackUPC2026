@@ -1,4 +1,5 @@
 import b4a from 'b4a'
+import { mulPointEscalar } from '@zk-kit/baby-jubjub'
 
 export default class ProtocolEngine {
   constructor(gameState, deck, peers, myPeerId) {
@@ -10,13 +11,10 @@ export default class ProtocolEngine {
   }
 
   // ... (keep the _generatePrivateKey and shuffle logic from before) ...
-  /**
-     * Internal: Generate a valid BabyJubJub scalar
-     */
     _generatePrivateKey() {
         // Use a secure random source for the scalar
         const rand = crypto.getRandomValues(new Uint8Array(32));
-        return babyJub.scalar.reduce(BigInt('0x' + Array.from(rand).map(b => b.toString(16).padStart(2, '0')).join('')));
+        return mulPointEscalar.reduce(BigInt('0x' + Array.from(rand).map(b => b.toString(16).padStart(2, '0')).join('')));
     }
     
     /**

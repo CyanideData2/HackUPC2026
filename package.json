@@ -22,6 +22,7 @@
     "pear-interface": "^1.0.0"
   },
   "dependencies": {
+    "@zk-kit/baby-jubjub": "^1.0.3",
     "b4a": "^1.8.0",
     "circom": "^0.5.46",
     "circomlib": "^2.0.5",

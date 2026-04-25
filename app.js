@@ -70,11 +70,6 @@ async function updateGameListeners() {
 }
 
 async function startGame() {
-	if (typeof babyJub === 'undefined') {
-      console.log('Waiting for babyJub to load...');
-      setTimeout(startGame, 100); // Try again in 100ms
-      return;
-  }
 	
   gameState = new GameState(myPeerId, [...peers.keys()])
   const deck = new Deck()

@@ -1,4 +1,4 @@
-
+import {Base8, mulPointEscalar} from '@zk-kit/baby-jubjub'
 let PUBLIC_CARD_POINTS = null;
 
 export default class Card {
@@ -29,14 +29,11 @@ export default class Card {
   }
   
   _initializePoints() {
-        if (typeof babyJub === 'undefined') {
-            throw new Error("babyJub library not found. Check your index.html script tag.");
-        }
         
         PUBLIC_CARD_POINTS = [];
         for (let i = 1; i <= 52; i++) {
             // Generate valid points on the curve: P = i * G
-            const pt = babyJub.mulPointEscal(babyJub.Base8, BigInt(i));
+            const pt = mulPointEscalar(Base8, BigInt(i));
             PUBLIC_CARD_POINTS.push(pt);
         }
     }
