@@ -78,13 +78,12 @@
       }
       #game {
         display:grid;
-        grid-template-rows: auto 1fr 100px;
-
+        grid-template-rows: auto 1fr auto;
       }
       #game-board {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr 100px;
+        grid-template-rows: 1fr 1fr 1fr;
       }
       .card {
         min-width: 100px;
@@ -118,9 +117,9 @@
         <div id="header">
           <div id="details">
             <div>Peers: <span id="peers-count">0</span></div>
+            <div id="other-players-list"></div>
           </div>
         </div>
-
         <div id="game-board"></div>
         <div id="game-hand"></div>
       </div>

@@ -5,7 +5,7 @@ import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
 import Card from './card.js'
 import GameState from './game.js'
-import { RenderScene } from './ui.js'
+import { RenderOtherPlayers, RenderScene } from './ui.js'
 
 const { teardown } = Pear
 
@@ -25,6 +25,10 @@ swarm.on('connection', (peer) => {
   peer.on('error', (e) => {
     console.log(`Connection error: ${e}`)
     peers.delete(peerId)
+    if (gameState) {
+      gameState.setPeers([...peers.keys()])
+      RenderOtherPlayers(gameState)
+    }
   })
 
   updatePeersCount()
@@ -32,6 +36,7 @@ swarm.on('connection', (peer) => {
   if (gameState) {
     const allPeerIds = [...peers.keys()]
     gameState.setPeers(allPeerIds)
+    RenderOtherPlayers(gameState)
   }
 })
 
@@ -42,6 +47,9 @@ swarm.on('update', updatePeersCount)
  */
 function updatePeersCount() {
   document.querySelector('#peers-count').textContent = peers.size
+  if (gameState) {
+    RenderOtherPlayers(gameState)
+  }
 }
 
 /**
@@ -104,6 +112,9 @@ function onMessageReceived(peerId, message) {
         break
       case 'turn':
         handleTurnUpdate(peerId, data)
+        break
+      default:
+        console.warn(`Unknown message type "${data.type}" from ${peerId}. Ignoring.`)
         break
     }
   } catch (e) {
@@ -181,6 +192,7 @@ function broadcastTurnResult(resolved) {
 function handleTurnUpdate(peerId, data) {
   if (data.peerIds) {
     gameState.setPeers(data.peerIds)
+    RenderOtherPlayers(gameState)
   }
   if (data.currentPlayerIndex !== undefined) {
     gameState.currentPlayerIndex = data.currentPlayerIndex
