@@ -77,7 +77,7 @@ async function startGame() {
   //protocolEngine.initiateShuffle();
   //console.log('Shuffling deck with peers')
   
-  gameState.startGame([new Card(5, "hearts")])
+  gameState.startGame([])
   RenderScene(gameState)
   updateGameListeners()
   document.querySelector('#header').classList.add('hidden')
