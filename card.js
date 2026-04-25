@@ -32,6 +32,9 @@ class Card {
     return `${this.rank} of ${this.suit}`
   }
   toCode() {
+    if (this.rank === 1) {
+      return `a${this.suit[0]}`
+    }
     const highs = ['j', 'q', 'k']
     if (this.rank > 10) {
       return "" + highs[this.rank - 11] + this.suit[0]
