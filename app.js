@@ -5,7 +5,7 @@ import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
 import Card from './card.js'
 import GameState from './game.js'
-import { RenderScene } from './ui.js'
+import { RenderOtherPlayers, RenderScene } from './ui.js'
 
 const { teardown } = Pear
 
@@ -14,6 +14,10 @@ const peers = new Map()
 let myPeerId = null
 /** @type GameState */
 let gameState = null
+
+// // TEMP visual-only debug peers. Delete these lines after manual UI testing.
+// const ENABLE_HARDCODED_VISUAL_PEERS = true
+// const HARDCODED_VISUAL_PEER_IDS = ['aa11bb', 'cc22dd', 'ee33ff', '112233', '445566']
 
 teardown(() => swarm.destroy())
 
@@ -25,6 +29,10 @@ swarm.on('connection', (peer) => {
   peer.on('error', (e) => {
     console.log(`Connection error: ${e}`)
     peers.delete(peerId)
+    if (gameState) {
+      gameState.setPeers([...peers.keys()])
+      RenderOtherPlayers(gameState)
+    }
   })
 
   updatePeersCount()
@@ -32,6 +40,7 @@ swarm.on('connection', (peer) => {
   if (gameState) {
     const allPeerIds = [...peers.keys()]
     gameState.setPeers(allPeerIds)
+    RenderOtherPlayers(gameState)
   }
 })
 
@@ -42,6 +51,9 @@ swarm.on('update', updatePeersCount)
  */
 function updatePeersCount() {
   document.querySelector('#peers-count').textContent = peers.size
+  if (gameState) {
+    RenderOtherPlayers(gameState)
+  }
 }
 
 /**
@@ -55,7 +67,11 @@ async function joinSwarm(topicBuffer) {
   await discovery.flushed()
 
   myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
-  gameState = new GameState(myPeerId, [...peers.keys()])
+  const initialPeerIds = [...peers.keys()]
+  // if (ENABLE_HARDCODED_VISUAL_PEERS && initialPeerIds.length === 0) {
+  //   initialPeerIds.push(...HARDCODED_VISUAL_PEER_IDS)
+  // }
+  gameState = new GameState(myPeerId, initialPeerIds)
 
   document.querySelector("#game-id").innerHTML = topicBuffer
   document.querySelector('#loading').classList.add('hidden')
@@ -103,6 +119,9 @@ function onMessageReceived(peerId, message) {
         break
       case 'turn':
         handleTurnUpdate(peerId, data)
+        break
+      default:
+        console.warn(`Unknown message type "${data.type}" from ${peerId}. Ignoring.`)
         break
     }
   } catch (e) {
@@ -176,6 +195,7 @@ function broadcastTurnResult(resolved) {
 function handleTurnUpdate(peerId, data) {
   if (data.peerIds) {
     gameState.setPeers(data.peerIds)
+    RenderOtherPlayers(gameState)
   }
   if (data.currentPlayerIndex !== undefined) {
     gameState.currentPlayerIndex = data.currentPlayerIndex

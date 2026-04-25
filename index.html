@@ -78,13 +78,48 @@
       }
       #game {
         display:grid;
-        grid-template-rows: auto 1fr 100px;
-
+        grid-template-rows: auto 1fr auto;
       }
       #game-board {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr 100px;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap: 0.5rem;
+        width: 420px;
+        height: 420px;
+        margin: 0 auto;
+        position: relative;
+      }
+      .game-board-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 60px;
+        min-width: 60px;
+        font-size: 1rem;
+        color: #b0d944;
+        background: none;
+        border: none;
+        text-align: center;
+        pointer-events: none;
+      }
+      .other-player-cell {
+        background: #0a2c0a;
+        border-radius: 10%;
+        border: 2px solid #b0d94499;
+        padding: 0.5em 1em;
+        min-width: 60px;
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px #0008;
+      }
+      .card-count {
+        font-size: 0.9em;
+        color: #fff;
+        opacity: 0.7;
       }
       .card {
         min-width: 100px;
@@ -121,7 +156,6 @@
             <div>Room Id: <span id="game-id"></span></div>
           </div>
         </div>
-
         <div id="game-board"></div>
         <div id="game-hand"></div>
       </div>
