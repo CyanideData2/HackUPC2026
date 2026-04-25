@@ -1,7 +1,8 @@
 class Card {
 
   static SUITS = [0, 1, 2, 3]
-  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] 
+  static SUIT_TO_STRING = {0: 'hearts', 1: 'diamonds', 2: 'clubs', 3: 'spades'}
+  static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
   constructor(rank, suit) {
     if (!Card.SUITS.includes(suit)) {
@@ -14,11 +15,6 @@ class Card {
 
     this.rank = rank
     this.suit = suit
-    this.id = suit*13 + rank
-    
-    const point = PUBLIC_CARD_POINTS[this.id]
-    this.x = point.x
-    this.y = point.y
   }
 
   // Compare this card to another
@@ -35,19 +31,22 @@ class Card {
   }
 
   toString() {
-    return `${this.rank} of ${this.suit}`
+    return `${this.rank} of ${Card.SUIT_TO_STRING[this.suit]}`
   }
   toCode() {
+    if (this.rank === 1) {
+      return `a${Card.SUIT_TO_STRING[this.suit][0]}`
+    }
     const highs = ['j', 'q', 'k']
     if (this.rank > 10) {
-      return "" + highs[this.rank - 11] + this.suit[0]
-    } else return "" + this.rank + this.suit[0]
+      return "" + highs[this.rank - 11] + Card.SUIT_TO_STRING[this.suit][0]
+    } else return "" + this.rank + Card.SUIT_TO_STRING[this.suit][0]
   }
 }
 function getDeck(){
   let result = []
-  for( suit of ['hearts', 'diamonds', 'clubs', 'spades']){
-    for (rank of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]){
+  for (const suit of Card.SUITS){
+    for (const rank of Card.RANKS){
       result.push(new Card(rank, suit))
     }
   }
