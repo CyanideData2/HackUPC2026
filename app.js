@@ -3,7 +3,7 @@
 import Hyperswarm from 'hyperswarm'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import Card from './card.js'
+import { Card, getDeck } from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
 import ProtocolEngine from './protocolEngine.js'
@@ -13,21 +13,20 @@ const { teardown } = Pear
 
 const swarm = new Hyperswarm({ maxPeers: 6 })
 const peers = new Map()
+let topicBuffer = null
 let myPeerId = null
 /** @type GameState */
 let gameState = null
 let protocolEngine = null
 
-// TEMP visual-only debug peers. Delete these lines after manual UI testing.
-const ENABLE_HARDCODED_VISUAL_PEERS = true
-const HARDCODED_VISUAL_PEER_IDS = ['aa11bb', 'cc22dd', 'ee33ff', '112233', '445566']
+const DEBOG = true
 
 teardown(() => swarm.destroy())
 
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   peers.set(peerId, peer)
-  console.log("new peer!")
+  console.log(peers)
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -51,7 +50,7 @@ function updatePeersCount() {
 /**
  * Joins a game swarm
  */
-async function joinSwarm(topicBuffer) {
+async function joinSwarm() {
   document.querySelector('#setup').classList.add('hidden')
   document.querySelector('#loading').classList.remove('hidden')
 
@@ -63,46 +62,61 @@ async function joinSwarm(topicBuffer) {
 async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
   for (const card of cards) {
-    card.addEventListener("click", async () => {
-      console.log(await swarm.status())
+    card.addEventListener("click", async (e) => {
+      //find card name
+      //find card in hand
     })
   }
 }
-async function loadGame(topicBuffer) {	
+
+async function startGame() {
   gameState = new GameState(myPeerId, [...peers.keys()])
   const deck = new Deck()
   protocolEngine = new ProtocolEngine(gameState, deck, peers, myPeerId)
   
+  protocolEngine.initiateShuffle();
+  console.log('Shuffling deck with peers')
   
+  gameState.startGame([new Card(5, "hearts")])
+  RenderScene(gameState)
+  updateGameListeners()
+  document.querySelector('#header').classList.add('hidden')
+  document.querySelector('#game-board').classList.remove('hidden')
+  document.querySelector('#game-hand').classList.remove('hidden')
+}
+async function loadLobby() {
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
   document.querySelector('#game').classList.remove('hidden')
 
   document.querySelector('#start-game').addEventListener("click", () => {
-	protocolEngine.initiateShuffle();
-	console.log('Shuffling deck with peers')
-	  
-    console.log(gameState)
-    gameState.startGame([new Card(5, "hearts")])
-    RenderScene(gameState)
-    updateGameListeners()
-    document.querySelector('#header').classList.add('hidden')
-    document.querySelector('#game-board').classList.remove('hidden')
-    document.querySelector('#game-hand').classList.remove('hidden')
-
+	
+    broadcastMessage(
+      JSON.stringify({
+        type: 'start',
+      })
+    )
+    startGame()
   })
 
+}
+async function unloadGame() {
+  document.querySelector('#setup').classList.remove('hidden')
+  document.querySelector('#loading').classList.add('hidden')
+  document.querySelector('#game').classList.add('hidden')
+
+  swarm.leave(topicBuffer)
+  gameState = null
+  topicBuffer = null
 }
 
 /**
  * Creates a new game room
  */
 async function createCardRoom() {
-  // const topicBuffer = crypto.randomBytes(32)
-  const topicStr = "4d9aad75726aca3c94f6f3c8f0483eb1da408e79cadf83c5a2c0d7a2b42be724"
-  const topicBuffer = b4a.from(topicStr, 'hex')
+  topicBuffer = crypto.randomBytes(32)
   await joinSwarm(topicBuffer)
-  loadGame(topicBuffer)
+  loadLobby(topicBuffer)
 }
 
 /**
@@ -111,8 +125,9 @@ async function createCardRoom() {
 async function joinCardRoom(e) {
   e.preventDefault()
   const topicStr = document.querySelector('#join-card-room-id').value
-  const topicBuffer = b4a.from(topicStr, 'hex')
-  joinSwarm(topicBuffer)
+  topicBuffer = b4a.from(topicStr, 'hex')
+  await joinSwarm(topicBuffer)
+  loadLobby(topicBuffer)
 }
 
 /**
@@ -145,6 +160,12 @@ function onMessageReceived(peerId, message) {
 	  case 'PROTOCOL_SHUFFLE_FINAL':
 		protocolEngine.handleShuffleFinal(data.deck)
 		break
+      case 'start':
+        console.log(gameState)
+        if (gameState == null || !gameState.ongoing) {
+          startGame()
+        }
+        break
       default:
         console.warn(`Unknown message type "${data.type}" from ${peerId}. Ignoring.`)
         break
@@ -230,12 +251,11 @@ function handleTurnUpdate(peerId, data) {
 /**
  * Attempts to play a card
  */
-function playCard(rank, suit) {
+function playCard(card) {
   if (!gameState.isMyTurn) {
     return { success: false, reason: 'Not your turn' }
   }
 
-  const card = new Card(rank, suit)
   const result = gameState.submitCard(card, myPeerId)
 
   if (result.accepted) {
@@ -276,5 +296,13 @@ function castVote(vote) {
 
 document.querySelector('#create-card-room').addEventListener('click', createCardRoom)
 document.querySelector('#join-form').addEventListener('submit', joinCardRoom)
+document.addEventListener("keypress", (e) => {
+  if (e.key == 'q') {
+    if (gameState) {
+      console.log("leaving")
+      unloadGame()
+    }
+  }
+})
 
 export { playCard, castVote, gameState, swarm }

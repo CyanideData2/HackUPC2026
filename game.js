@@ -1,4 +1,4 @@
-import Card from './card.js'
+import { Card } from './card.js'
 import { RenderScene } from './ui.js'
 
 /**
@@ -31,6 +31,7 @@ import { RenderScene } from './ui.js'
 
 class GameState {
   constructor(peerId, peerIds = []) {
+    this.ongoing = false
     this.peerId = peerId
     this.peerIds = peerIds
     this.currentPlayerIndex = 0
@@ -49,7 +50,11 @@ class GameState {
   }
   startGame(hand) {
     this.reset()
-    this.handCount = this.peerIds.reduce((accDict, id) => accDict.push({ id: 5 }), {})
+    this.ongoing = true
+    this.handCount = this.peerIds.reduce((accDict, id) => {
+      accDict[id] = 5
+      return accDict
+    }, {})
     this.hand = hand
   }
 
@@ -178,6 +183,7 @@ class GameState {
    * Resets the game state
    */
   reset() {
+    this.ongoing = false
     this.playedCards = []
     this.pendingCard = null
     this.votes.clear()
