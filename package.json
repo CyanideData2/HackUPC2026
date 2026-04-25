@@ -1,0 +1,32 @@
+{
+  "name": "HackUPC",
+  "main": "index.js",
+  "pear": {
+    "name": "hackupc",
+    "pre": "pear-electron/pre",
+    "gui": {
+      "main": "index.html",
+      "width": 900,
+      "height": 500,
+      "minWidth": 500
+    }
+  },
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "pear run -d .",
+    "test": "brittle test/*.test.js"
+  },
+  "devDependencies": {
+    "brittle": "^3.0.0",
+    "pear-interface": "^1.0.0"
+  },
+  "dependencies": {
+    "pear-bridge": "^1.2.1",
+    "pear-electron": "^1.7.28",
+    "pear-messages": "^1.0.3",
+    "pear-pipe": "^1.0.1",
+    "pear-updates": "^1.0.1",
+    "pear-wakeups": "^1.0.0"
+  }
+}
