@@ -15,6 +15,8 @@ class Card {
 
     this.rank = rank
     this.suit = suit
+    const highs = ['t', 'j', 'q', 'k']
+    this.hashCode = this.rank > 9 ? "" + highs[this.rank - 11] + this.suit[0] : "" + this.rank + this.suit[0]
   }
 
   // Compare this card to another
@@ -43,7 +45,7 @@ class Card {
     } else return "" + this.rank + Card.SUIT_TO_STRING[this.suit][0]
   }
 }
-function getDeck(){
+function getDeck() {
   let result = []
   for (const suit of Card.SUITS){
     for (const rank of Card.RANKS){

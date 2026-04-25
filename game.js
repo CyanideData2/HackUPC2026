@@ -2,6 +2,11 @@ import { Card } from './card.js'
 import { RenderScene } from './ui.js'
 
 /**
+ * @typedef {Object} Play
+ * @property {Card} card
+ * @property {string[]} actions
+ */
+/**
  * @typedef {Object} VoteResults
  * @property {number} totalVotes - Total number of votes cast
  * @property {number} yesVotes - Number of yes votes
@@ -28,6 +33,13 @@ import { RenderScene } from './ui.js'
  * @property {VoteResults} results - Vote tally
  * @property {Card} [card] - The card that was played
  */
+
+/**
+ * @param {string} id 
+ * @param {string[]} actions
+ */
+function checkRules(id, actions){
+}
 
 class GameState {
   constructor(peerId, peerIds = []) {
@@ -84,8 +96,10 @@ class GameState {
 
   /**
    * Verifies if a player can play a card
+   * @param {Play} play 
    */
-  verifyTurn(card, playerId) {
+  verifyTurn(play, playerId) {
+    const card = play.card
     if (playerId !== this.currentPlayer) {
       return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
     }
@@ -93,6 +107,10 @@ class GameState {
     if (!card || !(card instanceof Card)) {
       return { valid: false, reason: 'Invalid card' }
     }
+
+    const id = this.playedCards.hashCode + card.hashCode
+    checkRules(id, play.actions)
+
     return { valid: true, gameOver: this.playedCards.length + this.hand.length + sum(this.handCount.values) >= 52 }
   }
 
