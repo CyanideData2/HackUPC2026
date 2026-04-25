@@ -59,7 +59,8 @@ async function joinSwarm(topicBuffer) {
 
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector('#game').classList.remove('hidden')
-  updateTurnIndicator()
+  console.log(gameState)
+  RenderScene(gameState)
 }
 
 /**
@@ -184,23 +185,8 @@ function handleTurnUpdate(peerId, data) {
   if (data.currentPlayerIndex !== undefined) {
     gameState.currentPlayerIndex = data.currentPlayerIndex
   }
-  updateTurnIndicator()
 }
 
-/**
- * Updates the turn indicator UI
- */
-function updateTurnIndicator() {
-  const indicator = document.querySelector('#turn-indicator')
-  if (indicator) {
-    indicator.textContent = gameState.isMyTurn ? 'Your Turn!' : `${gameState.currentPlayer}'s Turn`
-  }
-
-  const playBtn = document.querySelector('#play-card-btn')
-  if (playBtn) {
-    playBtn.disabled = !gameState.isMyTurn
-  }
-}
 
 /**
  * Attempts to play a card

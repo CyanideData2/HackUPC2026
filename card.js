@@ -32,10 +32,10 @@ class Card {
     return `${this.rank} of ${this.suit}`
   }
   toCode() {
-    highs = ['j', 'q', 'k']
-    if (self.rank > 10) {
-      return "" + highs[self.rank - 11] + self.suit[0]
-    } else return "" + self.rank + self.suit[0]
+    const highs = ['j', 'q', 'k']
+    if (this.rank > 10) {
+      return "" + highs[this.rank - 11] + this.suit[0]
+    } else return "" + this.rank + this.suit[0]
   }
 }
 export default Card

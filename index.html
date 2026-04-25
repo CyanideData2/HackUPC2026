@@ -40,6 +40,7 @@
       main {
         display: flex;
         height: 100vh;
+        width: 100vw;
         color: white;
         justify-content: center;
         margin: 0;
@@ -74,11 +75,19 @@
         display: flex;
         justify-content: space-between;
       }
+      #game {
+        display:grid;
+        grid-template-rows: auto 1fr 100px;
 
+      }
       #game-board {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: 1fr 1fr 1fr;
+        grid-template-rows: 1fr 1fr 100px;
+      }
+      .card {
+        min-width: 100px;
+        min-height: 100px;
       }
     </style>
     <script type="module" src="./app.js"></script>
