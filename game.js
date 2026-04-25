@@ -38,7 +38,7 @@ class GameState {
     this.votes = new Map()
     this.voteTimeout = null
     /** @type {Card[]}*/
-    this.hand = [Card(5, 'hearts'), Card(5, 'hearts'), Card(5, 'hearts'), Card(5, 'hearts')]
+    this.hand = [new Card(5, 'hearts'), new Card(5, 'hearts'), new Card(5, 'hearts'), new Card(5, 'hearts')]
   }
 
   /**

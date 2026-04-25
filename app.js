@@ -52,7 +52,7 @@ async function joinSwarm(topicBuffer) {
   document.querySelector('#loading').classList.remove('hidden')
 
   const discovery = swarm.join(topicBuffer, { client: true, server: true })
-  await discovery.flush()
+  await discovery.flushed()
 
   myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
   gameState = new GameState(myPeerId, [...peers.keys()])
