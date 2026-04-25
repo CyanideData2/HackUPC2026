@@ -1,33 +1,30 @@
+import test from 'brittle'
 import { createHash, generateSet } from '../encrypt/game_rules.js';
 
-describe('createHash', () => {
-  it('should generate consistent hash for same input', () => {
-    const hash1 = createHash(1, 2, 3, 'mao');
-    const hash2 = createHash(1, 2, 3, 'mao');
-    expect(hash1).toBe(hash2);
-  });
-
-  it('should generate different hashes for different actions', () => {
-    const hash1 = createHash(1, 2, 3, 'mao');
-    const hash2 = createHash(1, 2, 3, 'hit card');
-    expect(hash1).not.toBe(hash2);
-  });
-
-  it('should standardize action string', () => {
-    const hash1 = createHash(1, 2, 3, '  MAO  ');
-    const hash2 = createHash(1, 2, 3, 'mao');
-    expect(hash1).toBe(hash2);
-  });
+test('createHash: consistent hash for same input', t => {
+  const hash1 = createHash(1, 2, 3, 'mao');
+  const hash2 = createHash(1, 2, 3, 'mao');
+  t.is(hash1, hash2);
 });
 
-describe('generateSet', () => {
-  it('should return a set', () => {
-    const set = generateSet();
-    expect(set instanceof Array).toBe(true);
-  });
+test('createHash: different hashes for different actions', t => {
+  const hash1 = createHash(1, 2, 3, 'mao');
+  const hash2 = createHash(1, 2, 3, 'hit card');
+  t.not(hash1, hash2);
+});
 
-  it('should not be empty', () => {
-    const set = generateSet();
-    expect(set.length).toBeGreaterThan(0);
-  });
+test('createHash: standardizes action string', t => {
+  const hash1 = createHash(1, 2, 3, '  MAO  ');
+  const hash2 = createHash(1, 2, 3, 'mao');
+  t.is(hash1, hash2);
+});
+
+test('generateSet: returns a set (array)', t => {
+  const set = generateSet();
+  t.ok(Array.isArray(set));
+});
+
+test('generateSet: set is not empty', t => {
+  const set = generateSet();
+  t.ok(set.length > 0);
 });

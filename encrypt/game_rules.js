@@ -69,11 +69,11 @@ function generateSet(){
 
 export { createHash, generateSet }
 
-console.log("Generating set...")
-const set = generateSet()
-console.log("Set generated with " + set.length + " elements.")
+// console.log("Generating set...")
+// const set = generateSet()
+// console.log("Set generated with " + set.length + " elements.")
 // Save the set to a file
-const fs = require('fs');
-fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(set));
-console.log("Set saved to encrypt/hashed_rules.json");
+// import fs from 'fs';
+// fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(set));
+// console.log("Set saved to encrypt/hashed_rules.json");
 
