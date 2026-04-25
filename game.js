@@ -1,5 +1,6 @@
 import { Card } from './card.js'
 import { RenderScene } from './ui.js'
+import Deck from './deck.js'
 
 /**
  * @typedef {Object} Play
@@ -38,14 +39,14 @@ import { RenderScene } from './ui.js'
  * @param {string} id 
  * @param {string[]} actions
  */
-function checkRules(id, actions){
+function checkRules(id, actions) {
 }
 
 class GameState {
-  constructor(peerId, peerIds = []) {
+  constructor(peerCount, myPosition, deck) {
     this.ongoing = false
-    this.peerId = peerId
-    this.peerIds = peerIds
+    this.myPosition = myPosition
+    this.peerCount = peerCount
     this.currentPlayerIndex = 0
     this.playedCards = []
 
@@ -57,17 +58,31 @@ class GameState {
     this.voteTimeout = null
     /** @type {Card[]}*/
     this.hand = []
-    /** @type {{string: int}}*/
-    this.handCount = {}
+    /** @type {int}*/
+    this.handCount = []
+    /** @type {Deck}*/
+    this.deck = deck
   }
-  startGame(hand) {
+  startGame() {
+    let i = 0
+    for (; i < this.myPosition; i++) {
+      this.deck.deal()
+      this.deck.deal()
+      this.deck.deal()
+    }
+    this.hand.push(this.deck.deal())
+    this.hand.push(this.deck.deal())
+    this.hand.push(this.deck.deal())
+    i++
+    for (; i < this.peerCount; i++) {
+      this.deck.deal()
+      this.deck.deal()
+      this.deck.deal()
+    }
+
     this.reset()
     this.ongoing = true
-    this.handCount = this.peerIds.reduce((accDict, id) => {
-      accDict[id] = 5
-      return accDict
-    }, {})
-    this.hand = hand
+    this.handCount = Array(this.peerCount).fill(3);
   }
 
   /**
@@ -81,7 +96,7 @@ class GameState {
    * Checks if it's the local peer's turn
    */
   get isMyTurn() {
-    return this.currentPlayer === this.peerId
+    return this.currentPlayer === this.myPosition
   }
 
   /**
@@ -185,6 +200,14 @@ class GameState {
     }
 
     return { success: false, results }
+  }
+  drawCard(player) {
+    this.handCount[player] += 1
+    if (player == self.peerId) {
+      hand.push(this.deck.deal())
+    } else {
+      this.deck.deal()
+    }
   }
 
   /**

@@ -3,21 +3,24 @@
 import Hyperswarm from 'hyperswarm'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import { Card, getDeck } from './card.js'
+import { Card } from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
+import Deck from './deck.js'
 //import ProtocolEngine from './protocolEngine.js'
 //import Deck from './deck.js'
 
 const { teardown } = Pear
 
 const swarm = new Hyperswarm({ maxPeers: 6 })
-const peers = new Map()
+// const peers = new Map()
 let topicBuffer = null
 let myPeerId = null
+let myPeerNo = 0
 /** @type GameState */
 let gameState = null
-let protocolEngine = null
+let admin = false
+// let protocolEngine = null
 
 const DEBOG = true
 
@@ -25,17 +28,16 @@ teardown(() => swarm.destroy())
 
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
-  peers.set(peerId, peer)
-  console.log(peers)
+  if (peerId < myPeerId) {
+    myPeerNo ++
+  }
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
     console.log(`Connection error: ${e}`)
-    peers.delete(peerId)
   })
 
   updatePeersCount()
-
 })
 
 swarm.on('update', updatePeersCount)
@@ -44,7 +46,7 @@ swarm.on('update', updatePeersCount)
  * Updates the peers count display
  */
 function updatePeersCount() {
-  document.querySelector('#peers-count').textContent = peers.size
+  document.querySelector('#peers-count').textContent = swarm.connections.size
 }
 
 /**
@@ -56,8 +58,7 @@ async function joinSwarm() {
 
   const discovery = swarm.join(topicBuffer, { client: true, server: true })
   await discovery.flushed()
-
-  myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
+  // myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
 }
 async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
@@ -69,15 +70,10 @@ async function updateGameListeners() {
   }
 }
 
-async function startGame() {
-  gameState = new GameState(myPeerId, [...peers.keys()])
-  //const deck = new Deck()
-  //protocolEngine = new ProtocolEngine(gameState, deck, peers, myPeerId)
-  
-  //protocolEngine.initiateShuffle();
-  //console.log('Shuffling deck with peers')
-  
-  gameState.startGame([])
+async function startGame(deck) {
+  console.log(deck)
+  gameState = new GameState(swarm.connections.size, myPeerNo, deck)
+  gameState.startGame()
   RenderScene(gameState)
   updateGameListeners()
   document.querySelector('#header').classList.add('hidden')
@@ -90,13 +86,16 @@ async function loadLobby() {
   document.querySelector('#game').classList.remove('hidden')
 
   document.querySelector('#start-game').addEventListener("click", () => {
-	
+    const deck = new Deck()
+    deck.shuffle()
+    const data = {
+      type: 'start',
+      cards: deck.cards
+    }
     broadcastMessage(
-      JSON.stringify({
-        type: 'start',
-      })
+      JSON.stringify(data)
     )
-    startGame()
+    startGame(deck)
   })
 
 }
@@ -114,6 +113,7 @@ async function unloadGame() {
  * Creates a new game room
  */
 async function createCardRoom() {
+  admin = true
   topicBuffer = crypto.randomBytes(32)
   await joinSwarm(topicBuffer)
   loadLobby(topicBuffer)
@@ -134,7 +134,7 @@ async function joinCardRoom(e) {
  * Broadcasts a message to all peers
  */
 function broadcastMessage(message) {
-  peers.forEach(peer => peer.write(message))
+  swarm.connections.forEach(peer => peer.write(message))
 }
 
 /**
@@ -154,16 +154,17 @@ function onMessageReceived(peerId, message) {
       case 'turn':
         handleTurnUpdate(peerId, data)
         break
-      case 'PROTOCOL_SHUFFLE_STEP':
-		protocolEngine.handleShuffleStep(data.deck)
-		break
-	  case 'PROTOCOL_SHUFFLE_FINAL':
-		protocolEngine.handleShuffleFinal(data.deck)
-		break
+      // case 'PROTOCOL_SHUFFLE_STEP':
+      //   protocolEngine.handleShuffleStep(data.deck)
+      //   break
+      // case 'PROTOCOL_SHUFFLE_FINAL':
+      //   protocolEngine.handleShuffleFinal(data.deck)
+      //   break
       case 'start':
-        console.log(gameState)
         if (gameState == null || !gameState.ongoing) {
-          startGame()
+          const deck = new Deck
+          deck.cards = data.cards
+          startGame(deck)
         }
         break
       default:
@@ -235,17 +236,6 @@ function broadcastTurnResult(resolved) {
   broadcastMessage(message)
 }
 
-/**
- * Handles turn updates from peers
- */
-function handleTurnUpdate(peerId, data) {
-  if (data.peerIds) {
-    gameState.setPeers(data.peerIds)
-  }
-  if (data.currentPlayerIndex !== undefined) {
-    gameState.currentPlayerIndex = data.currentPlayerIndex
-  }
-}
 
 
 /**

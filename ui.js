@@ -7,14 +7,6 @@ const SUITS = ["hearts", "diamonds", "clubs", "spades"]
  *@param {GameState} state 
     */
 function RenderScene(state) {
-    if (typeof document === "undefined") {
-        return
-    }
-
-    if (!state || !Array.isArray(state.peerIds)) {
-        return
-    }
-
     const gameHand = document.querySelector("#game-hand")
     if (gameHand && Array.isArray(state.hand)) {
         let hand = ""
@@ -33,7 +25,7 @@ function RenderScene(state) {
 
     // 3x3 grid, center cell contains deck and pile. Max 5 other peers around it.
     const cellOrder = [3, 0, 1, 2, 5]
-    const otherPeerIds = state.peerIds.filter(peerId => peerId !== state.peerId)
+    // const otherPeerIds = state.peerIds.filter(peerId => peerId !== state.myPosition)
     const cells = Array(9).fill("")
     const remainingDeckCount = getRemainingDeckCount(state)
     const pileCards = renderPileCards(state)
@@ -52,10 +44,10 @@ function RenderScene(state) {
         </div>
     `
 
-    for (let i = 0; i < otherPeerIds.length && i < cellOrder.length; ++i) {
-        const idx = cellOrder[i]
-        cells[idx] = `<div class="other-player-cell">Player ${otherPeerIds[i]}<br><span class="card-count">N</span></div>`
-    }
+    // for (let i = 0; i < otherPeerIds.length && i < cellOrder.length; ++i) {
+    //     const idx = cellOrder[i]
+    //     cells[idx] = `<div class="other-player-cell">Player ${otherPeerIds[i]}<br><span class="card-count">N</span></div>`
+    // }
 
     for (let i = 0; i < 9; ++i) {
         const cell = document.createElement("div")
