@@ -1,5 +1,5 @@
 import test from 'brittle'
-import { RenderOtherPlayers, RenderScene } from '../ui.js'
+import { RenderScene } from '../ui.js'
 
 function withMockDocument(selectors, fn) {
   const previousDocument = globalThis.document
@@ -38,13 +38,16 @@ function getBoardHtml(board) {
   return board.children.map((child) => child.innerHTML).join(' ')
 }
 
-test('RenderOtherPlayers - builds 9 board cells and excludes self', (t) => {
+test('RenderScene - builds 9 board cells and excludes self', (t) => {
   const gameBoard = createMockBoard()
+  const gameHand = { innerHTML: '' }
 
-  withMockDocument({ '#game-board': gameBoard }, () => {
-    RenderOtherPlayers({
+  withMockDocument({ '#game-board': gameBoard, '#game-hand': gameHand }, () => {
+    RenderScene({
       peerId: 'self01',
-      peerIds: ['self01', 'peerA1', 'peerB2']
+      peerIds: ['self01', 'peerA1', 'peerB2'],
+      hand: [],
+      playedCards: []
     })
   })
 
@@ -58,13 +61,16 @@ test('RenderOtherPlayers - builds 9 board cells and excludes self', (t) => {
   t.ok(html.includes('<span class="card-count">N</span>'))
 })
 
-test('RenderOtherPlayers - renders empty board when no other peers', (t) => {
+test('RenderScene - renders empty board when no other peers', (t) => {
   const gameBoard = createMockBoard()
+  const gameHand = { innerHTML: '' }
 
-  withMockDocument({ '#game-board': gameBoard }, () => {
-    RenderOtherPlayers({
+  withMockDocument({ '#game-board': gameBoard, '#game-hand': gameHand }, () => {
+    RenderScene({
       peerId: 'solo01',
-      peerIds: ['solo01']
+      peerIds: ['solo01'],
+      hand: [],
+      playedCards: []
     })
   })
 
@@ -94,13 +100,16 @@ test('RenderScene - updates hand and other players board together', (t) => {
   t.ok(getBoardHtml(gameBoard).includes('Player peerA1'))
 })
 
-test('RenderOtherPlayers - renders at most five other players', (t) => {
+test('RenderScene - renders at most five other players', (t) => {
   const gameBoard = createMockBoard()
+  const gameHand = { innerHTML: '' }
 
-  withMockDocument({ '#game-board': gameBoard }, () => {
-    RenderOtherPlayers({
+  withMockDocument({ '#game-board': gameBoard, '#game-hand': gameHand }, () => {
+    RenderScene({
       peerId: 'self01',
-      peerIds: ['self01', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7']
+      peerIds: ['self01', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'],
+      hand: [],
+      playedCards: []
     })
   })
 

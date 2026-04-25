@@ -1,6 +1,6 @@
 import test from 'brittle'
 import GameState from '../game.js'
-import Card from '../card.js'
+import {Card} from '../card.js'
 
 test('canVote - returns false when no pending card', (t) => {
   const game = new GameState('alice', ['alice', 'bob', 'charlie'])
