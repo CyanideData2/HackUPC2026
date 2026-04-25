@@ -38,4 +38,13 @@ class Card {
     } else return "" + this.rank + this.suit[0]
   }
 }
-export default Card
+function getDeck(){
+  let result = []
+  for( suit of ['hearts', 'diamonds', 'clubs', 'spades']){
+    for (rank of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]){
+      result.push(new Card(rank, suit))
+    }
+  }
+  return result
+}
+export { Card, getDeck }

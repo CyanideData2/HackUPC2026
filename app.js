@@ -3,7 +3,7 @@
 import Hyperswarm from 'hyperswarm'
 import crypto from 'hypercore-crypto'
 import b4a from 'b4a'
-import Card from './card.js'
+import { Card, getDeck } from './card.js'
 import GameState from './game.js'
 import { RenderScene } from './ui.js'
 
