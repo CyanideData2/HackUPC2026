@@ -162,7 +162,7 @@ function onMessageReceived(peerId, message) {
       //   break
       case 'start':
         if (gameState == null || !gameState.ongoing) {
-          const deck = new Deck
+          const deck = new Deck()
           deck.cards = data.cards
           startGame(deck)
         }
