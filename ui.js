@@ -24,8 +24,9 @@ function RenderOtherPlayers(state) {
     // 3x3 grid, skip center (4), max 5 other peers
     // Cell order: 0 1 2
     //             3 4 5
+    //             6 7 8
     // We cap at 5 other peers because game size is max 6 including self.
-    const cellOrder = [3, 0, 1, 2, 5]
+    const cellOrder = [0, 2, 1, 3, 5]
     const otherPeerIds = state.peerIds.filter(peerId => peerId !== state.peerId)
     const cells = Array(9).fill("")
 
