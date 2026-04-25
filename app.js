@@ -90,7 +90,7 @@ async function loadLobby() {
     deck.shuffle()
     const data = {
       type: 'start',
-      deck: deck
+      cards: deck.cards
     }
     broadcastMessage(
       JSON.stringify(data)
@@ -162,7 +162,8 @@ function onMessageReceived(peerId, message) {
       //   break
       case 'start':
         if (gameState == null || !gameState.ongoing) {
-          const deck = Deck.from(data.deck)
+          const deck = new Deck()
+          deck.cards = data.cards
           startGame(deck)
         }
         break
