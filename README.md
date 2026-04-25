@@ -4,6 +4,45 @@ The card game is mao, which is like uno but with unspoken rules.
 
 The objective is to create a visual interface for playing the game.
 
+## Setup
+
+### Prerequisites
+
+- Node.js LTS (includes npm)
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Run the app
+
+```bash
+npm run dev
+```
+
+Notes:
+
+- The first run may ask to install `pear` runtime tools. If prompted with `Ok to proceed? (y)`, type `y`.
+- To stop the app, press `Ctrl + C` in the terminal.
+
+### Windows PowerShell note
+
+If PowerShell blocks npm scripts with an execution policy error, run:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+Then restart the terminal.
+
+### Run tests
+
+```bash
+npm test
+```
+
 ## Decisions
 
 - The game must not use servers, but rather be peer to peer, because
