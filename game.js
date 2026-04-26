@@ -52,6 +52,7 @@ class GameState {
     this.pendingCard = null
     /** Peer that intiated the vote */
     this.pendingPeer = null
+    this.pendingOperation = null
 
     this.votes = new Map()
     this.voteTimeout = null
@@ -86,11 +87,23 @@ class GameState {
   }
 
 
-  playCard(position) {
-    const current = this.hand[position]
-    this.hand.splice(position, 1)
-    this.handCount[this.myPosition] -= 1
-    this.playedCards.push(current)
+  playCard() {
+    this.playedCards.push(this.pendingCard)
+    this.handCount[this.pendingPeer] -= 1
+    if (this.pendingPeer == this.myPosition) {
+      this.hand = this.hand.filter(card => card.hashCode != this.pendingCard.hashCode)
+    }
+    this.advanceTurn()
+  }
+
+  drawCard() {
+    this.handCount[this.pendingPeer] += 1
+    const nextCard = this.deck.deal()
+    console.log("drawing")
+    console.log(this.pendingPeer, this.myPosition)
+    if (this.pendingPeer == this.myPosition) {
+      this.hand.push(nextCard)
+    }
   }
 
   /**
@@ -121,7 +134,7 @@ class GameState {
   /**
    * Attempts to submit a card for the current turn
    */
-  submitCard(card, playerId) {
+  submitCard(card, playerId, operation) {
     const result = this.verifyTurn(card, playerId).valid
     if (!result) {
       return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
@@ -129,6 +142,7 @@ class GameState {
 
     this.pendingCard = card
     this.pendingPeer = playerId
+    this.pendingOperation = operation
     this.votes.clear()
     this.votes.set(playerId, 'yes')
 
@@ -139,16 +153,8 @@ class GameState {
    * Casts a vote on the pending card
    */
   castVote(playerId, vote) {
-    if (!this.canVote(playerId)) {
-      return { accepted: false, reason: 'Cannot vote now' }
-    }
-
-    if (vote !== 'yes' && vote !== 'no') {
-      return { accepted: false, reason: 'Invalid vote' }
-    }
-
     this.votes.set(playerId, vote)
-    return { accepted: true, voteCount: this.votes.size }
+    return this.votes.size
   }
 
   /**
@@ -166,33 +172,29 @@ class GameState {
     }
   }
 
+
   /**
    * Resolves the turn based on votes
    */
   resolveTurn() {
     const results = this.getVoteResults()
     const majorityRequired = Math.floor(this.peerCount / 2) + 1
-
+    console.log("resolving")
     if (results.yesVotes >= majorityRequired && this.pendingCard) {
-      this.playedCards.push(this.pendingCard)
-      this.handCount[this.pendingPeer] -= 1
-      if (this.pendingPeer == this.myPosition) {
-        console.log(this.hand)
-        console.log(this.pendingCard)
-        this.hand = this.hand.filter(card => card.hashCode != this.pendingCard.hashCode)
+      switch (this.pendingOperation) {
+        case 'play':
+          this.playCard()
+          break
+        case 'draw':
+          this.drawCard()
+          this.advanceTurn()
+          break
+        default:
+          console.warn("Operation unknown: ", this.pendingOperation)
+          break
       }
-      this.advanceTurn()
-      return { success: true, results }
-    }
-
-    return { success: false, results }
-  }
-  drawCard(player) {
-    this.handCount[player] += 1
-    if (player == self.myPosition) {
-      hand.push(this.deck.deal())
     } else {
-      this.deck.deal()
+      this.drawCard()
     }
   }
 
@@ -202,6 +204,7 @@ class GameState {
   advanceTurn() {
     this.pendingCard = null
     this.pendingPeer = null
+    this.pendingOperation = null
     this.votes.clear()
     this.currentPlayerIndex = (this.currentPlayerIndex + 1) % (this.peerCount + 1)
   }
@@ -213,6 +216,8 @@ class GameState {
     this.ongoing = false
     this.playedCards = []
     this.pendingCard = null
+    this.pendingPeer = null
+    this.pendingOperation = null
     this.votes.clear()
     this.currentPlayerIndex = 0
   }

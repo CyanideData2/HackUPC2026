@@ -19,6 +19,7 @@ let myPeerId = null
 let myPeerNo = 0
 /** @type GameState */
 let gameState = null
+let card_buffer = null
 let hostingVote = false
 let admin = false
 // let protocolEngine = null
@@ -189,7 +190,7 @@ function onMessageReceived(peerId, message) {
  */
 function handleCardPlay(senderId, data) {
   const card = new Card(data.rank, data.suit)
-  const result = gameState.submitCard(card, data.position)
+  const result = gameState.submitCard(card, data.position, 'play')
 
   if (result.accepted) {
     const response = JSON.stringify({
@@ -223,16 +224,25 @@ function broadcastVoteRequest(senderId, card) {
  * Handles an incoming vote
  */
 function handleVote(voterId, data) {
-  const result = gameState.castVote(voterId, data.vote)
+  const voteCount = gameState.castVote(voterId, data.vote)
 
-  if (result.accepted && result.voteCount >= swarm.connections.size) {
-    const resolved = gameState.resolveTurn()
-    if (!resolved.success) {
-      console.warn("turn couldn't resolve")
-    } else {
-      reRender()
-    }
+  if (hostingVote) {
+    const card = card_buffer
+    card_buffer = null
+    handleCardPlay(myPeerId, {
+      type: 'play',
+      position: myPeerNo,
+      rank: card.rank,
+      suit: card.suit
+    })
+    hostingVote = false
   }
+
+  if (voteCount >= swarm.connections.size + 1) {
+    const resolved = gameState.resolveTurn()
+    reRender()
+  }
+
 }
 /**
  * Broadcasts the turn resolution result
@@ -264,41 +274,41 @@ function playCard(card) {
     suit: card.suit
   }
   broadcastMessage(JSON.stringify(data))
-  handleCardPlay(myPeerId, data)
+  card_buffer = card
 }
 
-/**
- * Casts a vote on the pending card
- */
-function castVote(vote) {
-  if (!gameState.canVote(myPeerId)) {
-    return { success: false, reason: 'Cannot vote now' }
-  }
-
-  const result = gameState.castVote(myPeerId, vote)
-
-  if (result.accepted) {
-    const message = JSON.stringify({
-      type: 'vote',
-      vote: vote
-    })
-    broadcastMessage(message)
-    return { success: true }
-  }
-
-  return { success: false, reason: result.reason }
-}
+// /**
+//  * Casts a vote on the pending card
+//  */
+// function castVote(vote) {
+//   if (!gameState.canVote(myPeerId)) {
+//     return { success: false, reason: 'Cannot vote now' }
+//   }
+//
+//   const result = gameState.castVote(myPeerId, vote)
+//
+//   if (result.accepted) {
+//     const message = JSON.stringify({
+//       type: 'vote',
+//       vote: vote
+//     })
+//     broadcastMessage(message)
+//     return { success: true }
+//   }
+//
+//   return { success: false, reason: result.reason }
+// }
 
 
 document.querySelector('#create-card-room').addEventListener('click', createCardRoom)
 document.querySelector('#join-form').addEventListener('submit', joinCardRoom)
-document.addEventListener("keypress", (e) => {
-  if (e.key == 'q') {
-    if (gameState) {
-      console.log("leaving")
-      unloadGame()
-    }
-  }
-})
+// document.addEventListener("keypress", (e) => {
+//   if (e.key == 'q') {
+//     if (gameState) {
+//       console.log("leaving")
+//       unloadGame()
+//     }
+//   }
+// })
 
-export { playCard, castVote, gameState, swarm }
+export { playCard, gameState, swarm }
