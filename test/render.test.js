@@ -55,10 +55,9 @@ test('RenderScene - builds 9 board cells and excludes self', (t) => {
   t.is(gameBoard.children.length, 9)
 
   const html = getBoardHtml(gameBoard)
-  t.ok(html.includes('Player peerA1'))
-  t.ok(html.includes('Player peerB2'))
-  t.absent(html.includes('Player self01'))
-  t.ok(html.includes('<span class="card-count">N</span>'))
+  t.ok(html.includes('class="center-zone"'))
+  t.ok(html.includes('id="center-deck"'))
+  t.ok(html.includes('class="deck-count">52</span>'))
 })
 
 test('RenderScene - renders empty board when no other peers', (t) => {
@@ -75,7 +74,7 @@ test('RenderScene - renders empty board when no other peers', (t) => {
   })
 
   t.is(gameBoard.children.length, 9)
-  t.absent(getBoardHtml(gameBoard).includes('Player '))
+  t.ok(getBoardHtml(gameBoard).includes('class="center-zone"'))
 })
 
 test('RenderScene - updates hand and other players board together', (t) => {
@@ -97,10 +96,11 @@ test('RenderScene - updates hand and other players board together', (t) => {
 
   t.ok(gameHand.innerHTML.includes('pcard-5H'))
   t.is(gameBoard.children.length, 9)
-  t.ok(getBoardHtml(gameBoard).includes('Player peerA1'))
+  t.ok(getBoardHtml(gameBoard).includes('class="center-zone"'))
+  t.ok(gameHand.innerHTML.includes('id="chat-box-form"'))
 })
 
-test('RenderScene - renders at most five other players', (t) => {
+test('RenderScene - renders only latest three pile cards', (t) => {
   const gameBoard = createMockBoard()
   const gameHand = { innerHTML: '' }
 
@@ -109,14 +109,18 @@ test('RenderScene - renders at most five other players', (t) => {
       peerId: 'self01',
       peerIds: ['self01', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'],
       hand: [],
-      playedCards: []
+      playedCards: [
+        { toCode: () => 'ah' },
+        { toCode: () => '2h' },
+        { toCode: () => '3h' },
+        { toCode: () => '4h' }
+      ]
     })
   })
 
   const html = getBoardHtml(gameBoard)
-  t.is((html.match(/class="other-player-cell"/g) || []).length, 5)
-  t.ok(html.includes('Player p1'))
-  t.ok(html.includes('Player p5'))
-  t.absent(html.includes('Player p6'))
-  t.absent(html.includes('Player p7'))
+  t.is((html.match(/pile-card-\d/g) || []).length, 3)
+  t.absent(html.includes('pcard-ah'))
+  t.ok(html.includes('pcard-2h'))
+  t.ok(html.includes('pcard-4h'))
 })
