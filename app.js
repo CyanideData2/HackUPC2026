@@ -29,7 +29,7 @@ teardown(() => swarm.destroy())
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   if (peerId < myPeerId) {
-    myPeerNo ++
+    myPeerNo++
   }
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
@@ -83,6 +83,9 @@ async function startGame(deck) {
 async function loadLobby() {
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
+  document.querySelector("#copy-id").addEventListener("click", (e) => {
+    navigator.clipboard.writeText(topicBuffer.toString("hex"))
+  })
   document.querySelector('#game').classList.remove('hidden')
 
   document.querySelector('#start-game').addEventListener("click", () => {
