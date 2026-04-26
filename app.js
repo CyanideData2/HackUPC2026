@@ -29,8 +29,9 @@ teardown(() => swarm.destroy())
 swarm.on('connection', (peer) => {
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   if (peerId < myPeerId) {
-    myPeerNo ++
+    myPeerNo++
   }
+  console.log(myPeerNo)
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -56,9 +57,9 @@ async function joinSwarm() {
   document.querySelector('#setup').classList.add('hidden')
   document.querySelector('#loading').classList.remove('hidden')
 
+  myPeerId = b4a.toString(swarm.keyPair.publicKey, 'hex').substr(0, 6)
   const discovery = swarm.join(topicBuffer, { client: true, server: true })
   await discovery.flushed()
-  // myPeerId = b4a.toString(topicBuffer, 'hex').substr(0, 6)
 }
 async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
@@ -71,7 +72,6 @@ async function updateGameListeners() {
 }
 
 async function startGame(deck) {
-  console.log(deck)
   gameState = new GameState(swarm.connections.size, myPeerNo, deck)
   gameState.startGame()
   RenderScene(gameState)
@@ -83,6 +83,9 @@ async function startGame(deck) {
 async function loadLobby() {
   document.querySelector('#loading').classList.add('hidden')
   document.querySelector("#game-id").innerHTML = topicBuffer.toString("hex")
+  document.querySelector("#copy-id").addEventListener("click", (e) => {
+    navigator.clipboard.writeText(topicBuffer.toString("hex"))
+  })
   document.querySelector('#game').classList.remove('hidden')
 
   document.querySelector('#start-game').addEventListener("click", () => {
@@ -162,7 +165,7 @@ function onMessageReceived(peerId, message) {
       //   break
       case 'start':
         if (gameState == null || !gameState.ongoing) {
-          const deck = new Deck
+          const deck = new Deck()
           deck.cards = data.cards
           startGame(deck)
         }

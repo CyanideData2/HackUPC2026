@@ -5,13 +5,8 @@ class Deck {
 	static RANKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
 	constructor() {
-		this.cards = []
-
-		for (let i = 1; i <= 13; i++) {
-			for (let j = 0; j < 4; j++) {
-				this.cards.push(new Card(i, j))
-			}
-		}
+		/** @type {int[]} */
+		this.cards = Array.from(Array(52).keys())
 	}
 	// Shuffle the deck
 	shuffle() {
@@ -25,9 +20,9 @@ class Deck {
 	 * @returns {Card}
 	 * */
 	deal() {
-		const result = this.cards[0]
+		const current = this.cards[0]
 		this.cards.splice(0, 1)
-		return result
+		return new Card(current % 13 + 1, Math.floor(current/13))
 	}
 
 	// Encrypt the deck
