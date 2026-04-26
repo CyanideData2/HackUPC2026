@@ -16,7 +16,7 @@ class Card {
     this.rank = rank
     this.suit = suit
     const highs = ['t', 'j', 'q', 'k']
-    this.hashCode = this.rank > 9 ? "" + highs[this.rank - 11] + this.suit[0] : "" + this.rank + this.suit[0]
+    this.hashCode = this.rank > 9 ? "" + highs[this.rank - 11] + Array.from(this.suit)[0] : "" + this.rank + Array.from(this.suit)[0]
   }
 
   // Compare this card to another

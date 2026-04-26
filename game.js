@@ -86,30 +86,18 @@ class GameState {
   }
 
 
-  playCard(position){
-		const current = this.hand[position]
-		this.hand.splice(position, 1)
-    this.handCount[this.myPosition] -=1
+  playCard(position) {
+    const current = this.hand[position]
+    this.hand.splice(position, 1)
+    this.handCount[this.myPosition] -= 1
     this.playedCards.push(current)
-  }
-
-  /**
-   * Updates the list of peers
-   */
-  setPeers(peerIds) {
-    this.peerIds = peerIds
-    if (this.currentPlayerIndex >= peerIds.length) {
-      this.currentPlayerIndex = 0
-    }
   }
 
   /**
    * Verifies if a player can play a card
    * @param {Play} play 
    */
-  verifyTurn(play, playerId) {
-    const card = play.card
-    console.log(playerId,  this.currentPlayerIndex)
+  verifyTurn(card, playerId) {
     if (playerId != this.currentPlayerIndex) {
       return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
     }
@@ -118,10 +106,7 @@ class GameState {
       return { valid: false, reason: 'Invalid card' }
     }
 
-    const id = this.playedCards.hashCode + card.hashCode
-    checkRules(id, play.actions)
-
-    return { valid: true, gameOver: this.playedCards.length + this.hand.length + sum(this.handCount.values) >= 52 }
+    return { valid: true }
   }
 
   /**
@@ -137,7 +122,8 @@ class GameState {
    * Attempts to submit a card for the current turn
    */
   submitCard(card, playerId) {
-    if (!this.verifyTurn(card, playerId).valid) {
+    const result = this.verifyTurn(card, playerId).valid
+    if (!result) {
       return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
     }
 
@@ -162,7 +148,7 @@ class GameState {
     }
 
     this.votes.set(playerId, vote)
-    return { accepted: true, voteCount: this.votes.length }
+    return { accepted: true, voteCount: this.votes.size }
   }
 
   /**
@@ -185,20 +171,25 @@ class GameState {
    */
   resolveTurn() {
     const results = this.getVoteResults()
-    const majorityRequired = Math.floor(this.peerIds.length / 2) + 1
+    const majorityRequired = Math.floor(this.peerCount / 2) + 1
 
     if (results.yesVotes >= majorityRequired && this.pendingCard) {
       this.playedCards.push(this.pendingCard)
       this.handCount[this.pendingPeer] -= 1
+      if (this.pendingPeer == this.myPosition) {
+        console.log(this.hand)
+        console.log(this.pendingCard)
+        this.hand = this.hand.filter(card => card.hashCode != this.pendingCard.hashCode)
+      }
       this.advanceTurn()
-      return { success: true, card, results }
+      return { success: true, results }
     }
 
     return { success: false, results }
   }
   drawCard(player) {
     this.handCount[player] += 1
-    if (player == self.peerId) {
+    if (player == self.myPosition) {
       hand.push(this.deck.deal())
     } else {
       this.deck.deal()
@@ -212,7 +203,7 @@ class GameState {
     this.pendingCard = null
     this.pendingPeer = null
     this.votes.clear()
-    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.peerIds.length
+    this.currentPlayerIndex = (this.currentPlayerIndex + 1) % (this.peerCount + 1)
   }
 
   /**

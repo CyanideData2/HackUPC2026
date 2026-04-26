@@ -192,11 +192,14 @@ function handleCardPlay(senderId, data) {
   const result = gameState.submitCard(card, data.position)
 
   if (result.accepted) {
-    broadcastVoteRequest(senderId, card)
+    const response = JSON.stringify({
+      type: 'vote',
+      vote: 'yes',
+    })
+    broadcastMessage(response)
   } else {
     const response = JSON.stringify({
       type: 'vote',
-      card: null,
       vote: 'no',
       reason: result.reason
     })
@@ -220,13 +223,14 @@ function broadcastVoteRequest(senderId, card) {
  * Handles an incoming vote
  */
 function handleVote(voterId, data) {
-  console.log(voterId, data)
   const result = gameState.castVote(voterId, data.vote)
 
-  if (result.accepted && result.voteCount >= peerCount) {
+  if (result.accepted && result.voteCount >= swarm.connections.size) {
     const resolved = gameState.resolveTurn()
     if (!resolved.success) {
       console.warn("turn couldn't resolve")
+    } else {
+      reRender()
     }
   }
 }
