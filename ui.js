@@ -8,13 +8,38 @@ const SUITS = ["hearts", "diamonds", "clubs", "spades"]
     */
 function RenderScene(state) {
     const gameHand = document.querySelector("#game-hand")
+    // Render a chat box at the right of the hand so that the 
+    // active player can type the action they want to perform 
+    // with the card they want to play. 
+    // The chat box should have a send button that will trigger the action 
+    // when clicked.
+
+    const chatBoxString = `        
+        <form id="chat-box-form">
+            <button type="submit" id="send-message-button">Send</button>
+            <input
+                required
+                id="chat-message"
+                type="text"
+                placeholder="Type your message..."
+            />
+        </form>
+    `
+
     if (gameHand && Array.isArray(state.hand)) {
         let hand = ""
         for (const card of state.hand) {
             hand += `<span class="pcard-${card.toCode()} card"></span>`
         }
-        gameHand.innerHTML = hand
+
+        gameHand.innerHTML = `
+            <div class="hand-layout">
+                <div class="hand-cards">${hand}</div>
+                <div class="hand-chat">${chatBoxString}</div>
+            </div>
+        `
     }
+
 
     const board = document.querySelector("#game-board")
     if (!board) {
@@ -73,6 +98,33 @@ function RenderScene(state) {
                 state.advanceTurn()
             }
             RenderScene(state)
+        })
+    }
+
+    const chatForm = document.querySelector("#chat-box-form")
+    const chatMessageInput = document.querySelector("#chat-message")
+    if (chatForm && chatMessageInput) {
+        chatForm.addEventListener("submit", (event) => {
+            event.preventDefault()
+            const message = chatMessageInput.value.trim()
+            if (!message) {
+                return
+            }
+
+            if (typeof state.handleChatAction === "function") {
+                state.handleChatAction(message)
+            }
+
+            if (typeof document.dispatchEvent === "function" && typeof CustomEvent === "function") {
+                document.dispatchEvent(new CustomEvent("game:action-message", {
+                    detail: {
+                        message,
+                        playerId: state.myPosition
+                    }
+                }))
+            }
+
+            chatMessageInput.value = ""
         })
     }
 }
