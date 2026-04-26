@@ -31,7 +31,7 @@ function generateSet(){
                 let suitj = Math.floor((previousCard-1)/13)
                 if (numCardsInHand === 0) { set.push(createHash(currentCard, previousCard, numCardsInHand, "mao"))}
                 else if (numCardsInHand === 1) { set.push(createHash(currentCard, previousCard, numCardsInHand, "hit card"))}
-                else if (numCardsInHand === 2) { set.push(createHash(currentCard, previousCard, numCardsInHand, "fregar les cartes"))}
+                else if (numCardsInHand === 2) { set.push(createHash(currentCard, previousCard, numCardsInHand, "brush cards"))}
                 if (ranki === 1) { 
                     if (rankj=== 1)
                         {set.push(createHash(currentCard, previousCard, numCardsInHand, "klingae"))}
@@ -39,12 +39,12 @@ function generateSet(){
                         {set.push(createHash(currentCard, previousCard, numCardsInHand, "klingae klingae"))}
                 }
                 else if (ranki === 7) {
-                    if (rankj=== 7){set.push(createHash(currentCard, previousCard, numCardsInHand, "bon dia"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "molt bon dia"))}
+                    if (rankj=== 7){set.push(createHash(currentCard, previousCard, numCardsInHand, "good morning"))}
+                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "very good morning"))}
                 }
                 else if (ranki === 8) {
-                    if (rankj=== 8){set.push(createHash(currentCard, previousCard, numCardsInHand, "bon"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "bon bon"))}
+                    if (rankj=== 8){set.push(createHash(currentCard, previousCard, numCardsInHand, "boom"))}
+                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "boom boom"))}
                 }
                 else if (ranki === 11) { 
                     if (rankj === 11) {set.push(createHash(currentCard, previousCard, numCardsInHand, "hit player"))}
@@ -69,11 +69,11 @@ function generateSet(){
 
 export { createHash, generateSet }
 
-// console.log("Generating set...")
-// const set = generateSet()
-// console.log("Set generated with " + set.length + " elements.")
+console.log("Generating set...")
+const set = generateSet()
+console.log("Set generated with " + set.length + " elements.")
 // Save the set to a file
-// import fs from 'fs';
-// fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(set));
-// console.log("Set saved to encrypt/hashed_rules.json");
+import fs from 'fs';
+fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(set));
+console.log("Set saved to encrypt/hashed_rules.json");
 
