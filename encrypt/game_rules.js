@@ -2,14 +2,20 @@ import crypto from 'crypto'
 
 const secret = "mysecretkey"
 const NumberOfCards = 52
-const NumberOfStatesCardsInHand = 4
-const nameofcards = ["K","A","2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q"]
+const NumStatesForCardsInHand = 5
+const MaxTrackedCardsInHand = 4
+const RankName = ["k", "a", "2", "3", "4", "5", "6", "7", "8", "9", "10", "j", "q"]
+
+function normalizeNumCardsInHand(numCardsInHand) {
+    return Math.min(numCardsInHand, MaxTrackedCardsInHand)
+}
 
 function createHash(currentCard, previousCard, numCardsInHand, action){
+    const normalizedNumCardsInHand = normalizeNumCardsInHand(numCardsInHand)
     const action_standardized = action.toLowerCase().replace(/\s+/g, ' ').trim()
     const currentCardStr = String(currentCard).padStart(2, '0');
     const previousCardStr = String(previousCard).padStart(2, '0');
-    const numCardsInHandStr = String(numCardsInHand);
+    const numCardsInHandStr = String(normalizedNumCardsInHand);
     const stat = currentCardStr + previousCardStr + numCardsInHandStr + action_standardized
 
     return crypto.createHmac('sha256', secret)
@@ -17,51 +23,95 @@ function createHash(currentCard, previousCard, numCardsInHand, action){
         .digest('hex')
 }
 
-function generateSet(){
-    let set = []
+function generateHashedRuleSet(){
+    const set = new Set()
     for (let currentCard = 1; currentCard <= NumberOfCards; currentCard++) {
         for (let previousCard = 1; previousCard <= NumberOfCards; previousCard++) {
             if (currentCard === previousCard) {
                 continue
             }
-            let ranki = currentCard % 13
-            let suiti = Math.floor((currentCard-1)/13)
-            let rankj = previousCard % 13
-            let suitj = Math.floor((previousCard-1)/13)
-            if (ranki !== rankj && suiti !== suitj) {
+            const rankCurr = currentCard % 13
+            const suitCurr = Math.floor((currentCard-1)/13)
+            const rankPrev = previousCard % 13
+            const suitPrev = Math.floor((previousCard-1)/13)
+            if (rankCurr !== rankPrev && suitCurr !== suitPrev) {
                 continue
             }
-            for (let numCardsInHand = 0; numCardsInHand < NumberOfStatesCardsInHand; numCardsInHand++) {
-                if (numCardsInHand === 0) { set.push(createHash(currentCard, previousCard, numCardsInHand, "mao"))}
-                else if (numCardsInHand === 1) { set.push(createHash(currentCard, previousCard, numCardsInHand, "hit card"))}
-                else if (numCardsInHand === 2) { set.push(createHash(currentCard, previousCard, numCardsInHand, "brush cards"))}
-                if (ranki === 1) { 
-                    if (rankj=== 1)
-                        {set.push(createHash(currentCard, previousCard, numCardsInHand, "klingae"))}
-                    else 
-                        {set.push(createHash(currentCard, previousCard, numCardsInHand, "klingae klingae"))}
+            let numActions = 0
+            for (let numCardsInHand = 0; numCardsInHand < NumStatesForCardsInHand; numCardsInHand++) {
+                if (numCardsInHand === 0) {
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, "mao"))
+                    numActions += 1
                 }
-                else if (ranki === 7) {
-                    if (rankj=== 7){set.push(createHash(currentCard, previousCard, numCardsInHand, "good morning"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "very good morning"))}
+                else if (numCardsInHand === 1) { 
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, "hit card"))
+                    numActions += 1
                 }
-                else if (ranki === 8) {
-                    if (rankj=== 8){set.push(createHash(currentCard, previousCard, numCardsInHand, "boom"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "boom boom"))}
+                else if (numCardsInHand === 2) { 
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, "brush cards"))
+                    numActions += 1
                 }
-                else if (ranki === 11) { 
-                    if (rankj === 11) {set.push(createHash(currentCard, previousCard, numCardsInHand, "hit player"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "hit player twice"))}
+                if (rankCurr === 1) { 
+                    if (rankPrev=== 1) {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "klingae"))
+                        numActions += 1
+                    }
+                    else {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "klingae klingae"))
+                        numActions += 1
+                    }
                 }
-                else if (ranki === 12) { 
-                    if (rankj === 12) {set.push(createHash(currentCard, previousCard, numCardsInHand, "god save the queen"))}
-                    else {set.push(createHash(currentCard, previousCard, numCardsInHand, "god save the queen god save the queen"))}
+                else if (rankCurr === 7) {
+                    if (rankPrev=== 7){
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "good morning"))
+                        numActions += 1
+                    }
+                    else {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "very good morning"))
+                        numActions += 1
+                    }
                 }
-                if (suiti === 0){
-                    set.push(createHash(currentCard, previousCard, numCardsInHand, "nah"))
+                else if (rankCurr === 8) {
+                    if (rankPrev=== 8){
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "boom"))
+                        numActions += 1
+                    }
+                    else {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "boom boom"))
+                        numActions += 1
+                    }
                 }
-                else if (suiti === 3){
-                    set.push(createHash(currentCard, previousCard, numCardsInHand, String(nameofcards[ranki]) + " of spades"))
+                else if (rankCurr === 11) { 
+                    if (rankPrev === 11) {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "hit player"))
+                        numActions += 1
+                    }
+                    else {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "hit player twice"))
+                        numActions += 1
+                    }
+                }
+                else if (rankCurr === 12) { 
+                    if (rankPrev === 12) {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "god save the queen"))
+                        numActions += 1
+                    }
+                    else {
+                        set.add(createHash(currentCard, previousCard, numCardsInHand, "god save the queen god save the queen"))
+                        numActions += 1
+                    }
+                }
+                if (suitCurr === 0){
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, "nah"))
+                    numActions += 1
+                }
+                else if (suitCurr === 3){
+                    const action = String(RankName[rankCurr]) + " of spades"
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, action))
+                    numActions += 1
+                }
+                if (numActions === 0) {
+                    set.add(createHash(currentCard, previousCard, numCardsInHand, ""))
                 }
             }
         }
@@ -70,13 +120,13 @@ function generateSet(){
     return set
 }
 
-export { createHash, generateSet }
+export { createHash, generateHashedRuleSet }
 
 console.log("Generating set...")
-const set = generateSet()
-console.log("Set generated with " + set.length + " elements.")
+const set = generateHashedRuleSet()
+console.log("Set generated with " + set.size + " elements.")
 // Save the set to a file
 import fs from 'fs';
-fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(set));
+fs.writeFileSync('encrypt/hashed_rules.json', JSON.stringify(Array.from(set)));
 console.log("Set saved to encrypt/hashed_rules.json");
 

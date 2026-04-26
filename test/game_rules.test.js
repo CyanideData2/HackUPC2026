@@ -1,5 +1,5 @@
 import test from 'brittle'
-import { createHash, generateSet } from '../encrypt/game_rules.js';
+import { createHash, generateHashedRuleSet } from '../encrypt/game_rules.js';
 
 test('createHash: consistent hash for same input', t => {
   const hash1 = createHash(1, 2, 3, 'mao');
@@ -19,12 +19,17 @@ test('createHash: standardizes action string', t => {
   t.is(hash1, hash2);
 });
 
-test('generateSet: returns a set (array)', t => {
-  const set = generateSet();
-  t.ok(Array.isArray(set));
+test('generateHashedRuleSet: returns a set', t => {
+  const set = generateHashedRuleSet();
+  t.ok(set instanceof Set);
 });
 
-test('generateSet: set is not empty', t => {
-  const set = generateSet();
-  t.ok(set.length > 0);
+test('generateHashedRuleSet: set is not empty', t => {
+  const set = generateHashedRuleSet();
+  t.ok(set.size > 0);
+});
+
+test('generateHashedRuleSet: cannot play a red card against a black card', t => {
+  const set = generateHashedRuleSet();
+  const hash = createHash(1, 14, 0, 'mao'); // Ace of Hearts (red) against Ace of Spades (black)
 });
