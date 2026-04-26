@@ -27,11 +27,11 @@ const DEBOG = true
 teardown(() => swarm.destroy())
 
 swarm.on('connection', (peer) => {
-  console.log(peer)
   const peerId = b4a.toString(peer.remotePublicKey, 'hex').substr(0, 6)
   if (peerId < myPeerId) {
     myPeerNo++
   }
+  console.log(myPeerNo)
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -57,7 +57,6 @@ async function joinSwarm() {
   document.querySelector('#setup').classList.add('hidden')
   document.querySelector('#loading').classList.remove('hidden')
 
-  console.log(swarm)
   myPeerId = b4a.toString(swarm.keyPair.publicKey, 'hex').substr(0, 6)
   const discovery = swarm.join(topicBuffer, { client: true, server: true })
   await discovery.flushed()
@@ -73,7 +72,6 @@ async function updateGameListeners() {
 }
 
 async function startGame(deck) {
-  console.log(deck)
   gameState = new GameState(swarm.connections.size, myPeerNo, deck)
   gameState.startGame()
   RenderScene(gameState)
