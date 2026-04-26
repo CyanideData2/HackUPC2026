@@ -108,10 +108,10 @@ class GameState {
    * @param {Play} play 
    */
   verifyTurn(play, playerId) {
-    console.log(this, playerId)
     const card = play.card
-    if (playerId !== this.currentPlayer) {
-      return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
+    console.log(playerId,  this.currentPlayerIndex)
+    if (playerId != this.currentPlayerIndex) {
+      return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
     }
 
     if (!card || !(card instanceof Card)) {

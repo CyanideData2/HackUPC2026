@@ -189,7 +189,7 @@ function onMessageReceived(peerId, message) {
  */
 function handleCardPlay(senderId, data) {
   const card = new Card(data.rank, data.suit)
-  const result = gameState.submitCard(card, senderId)
+  const result = gameState.submitCard(card, data.position)
 
   if (result.accepted) {
     broadcastVoteRequest(senderId, card)
@@ -255,6 +255,7 @@ function playCard(card) {
   hostingVote = true
   const data = {
     type: 'play',
+    position: myPeerNo,
     rank: card.rank,
     suit: card.suit
   }
