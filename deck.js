@@ -1,4 +1,4 @@
-import { Card } from "./card"
+import { Card } from "./card.js"
 
 class Deck {
 	static SUITS = ['hearts', 'diamonds', 'clubs', 'spades']
