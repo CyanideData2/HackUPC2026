@@ -24,11 +24,14 @@ function generateSet(){
             if (currentCard === previousCard) {
                 continue
             }
+            let ranki = currentCard % 13
+            let suiti = Math.floor((currentCard-1)/13)
+            let rankj = previousCard % 13
+            let suitj = Math.floor((previousCard-1)/13)
+            if (ranki !== rankj && suiti !== suitj) {
+                continue
+            }
             for (let numCardsInHand = 0; numCardsInHand < NumberOfStatesCardsInHand; numCardsInHand++) {
-                let ranki = currentCard % 13
-                let suiti = Math.floor((currentCard-1)/13)
-                let rankj = previousCard % 13
-                let suitj = Math.floor((previousCard-1)/13)
                 if (numCardsInHand === 0) { set.push(createHash(currentCard, previousCard, numCardsInHand, "mao"))}
                 else if (numCardsInHand === 1) { set.push(createHash(currentCard, previousCard, numCardsInHand, "hit card"))}
                 else if (numCardsInHand === 2) { set.push(createHash(currentCard, previousCard, numCardsInHand, "brush cards"))}
