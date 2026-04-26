@@ -19,6 +19,7 @@ let myPeerId = null
 let myPeerNo = 0
 /** @type GameState */
 let gameState = null
+let hostingVote = false
 let admin = false
 // let protocolEngine = null
 
@@ -31,7 +32,6 @@ swarm.on('connection', (peer) => {
   if (peerId < myPeerId) {
     myPeerNo++
   }
-  console.log(myPeerNo)
 
   peer.on('data', (message) => onMessageReceived(peerId, message))
   peer.on('error', (e) => {
@@ -65,8 +65,14 @@ async function updateGameListeners() {
   var cards = document.getElementsByClassName("card");
   for (const card of cards) {
     card.addEventListener("click", async (e) => {
-      //find card name
-      //find card in hand
+      const element = e.target
+      const position = [...element.parentElement.children].indexOf(element)
+      if (swarm.connections.size > 0) {
+        playCard(gameState.hand[position])
+      } else {
+        gameState.playCard(position)
+        reRender()
+      }
     })
   }
 }
@@ -74,8 +80,7 @@ async function updateGameListeners() {
 async function startGame(deck) {
   gameState = new GameState(swarm.connections.size, myPeerNo, deck)
   gameState.startGame()
-  RenderScene(gameState)
-  updateGameListeners()
+  reRender()
   document.querySelector('#header').classList.add('hidden')
   document.querySelector('#game-board').classList.remove('hidden')
   document.querySelector('#game-hand').classList.remove('hidden')
@@ -215,8 +220,7 @@ function broadcastVoteRequest(senderId, card) {
  * Handles an incoming vote
  */
 function handleVote(voterId, data) {
-  if (voterId === myPeerId) return
-
+  console.log(voterId, data)
   const result = gameState.castVote(voterId, data.vote)
 
   if (result.accepted && result.voteCount >= peerCount) {
@@ -239,29 +243,23 @@ function broadcastTurnResult(resolved) {
   broadcastMessage(message)
 }
 
-
+function reRender() {
+  RenderScene(gameState)
+  updateGameListeners()
+}
 
 /**
  * Attempts to play a card
  */
 function playCard(card) {
-  if (!gameState.isMyTurn) {
-    return { success: false, reason: 'Not your turn' }
+  hostingVote = true
+  const data = {
+    type: 'play',
+    rank: card.rank,
+    suit: card.suit
   }
-
-  const result = gameState.submitCard(card, myPeerId)
-
-  if (result.accepted) {
-    const message = JSON.stringify({
-      type: 'play',
-      rank: card.rank,
-      suit: card.suit
-    })
-    broadcastMessage(message)
-    return { success: true }
-  }
-
-  return { success: false, reason: result.reason }
+  broadcastMessage(JSON.stringify(data))
+  handleCardPlay(myPeerId, data)
 }
 
 /**
