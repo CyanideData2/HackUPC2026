@@ -63,7 +63,7 @@ async function joinSwarm() {
   await discovery.flushed()
 }
 async function updateGameListeners() {
-  var cards = document.getElementsByClassName("card");
+  const cards = document.querySelectorAll("#game-hand .hand-cards .card")
   for (const card of cards) {
     card.addEventListener("click", async (e) => {
       const element = e.target
@@ -190,7 +190,9 @@ function onMessageReceived(peerId, message) {
  */
 function handleCardPlay(senderId, data) {
   const card = new Card(data.rank, data.suit)
-  const result = gameState.submitCard(card, data.position, 'play')
+  const result = gameState.submitCard(card, data.position, 'play', data.actionMessages || [])
+
+  gameState.actionMessages = []
 
   if (result.accepted) {
     const response = JSON.stringify({
@@ -260,21 +262,86 @@ function broadcastTurnResult(resolved) {
 function reRender() {
   RenderScene(gameState)
   updateGameListeners()
+  readAction()
 }
 
 /**
  * Attempts to play a card
  */
 function playCard(card) {
+  if (!card) {
+    return
+  }
+
+  const latestAction = Array.isArray(gameState?.actionMessages)
+    ? gameState.actionMessages[gameState.actionMessages.length - 1] || ""
+    : ""
+
   hostingVote = true
   const data = {
     type: 'play',
     position: myPeerNo,
     rank: card.rank,
-    suit: card.suit
+    suit: card.suit,
+    actionMessages: latestAction ? [latestAction] : []
   }
   broadcastMessage(JSON.stringify(data))
   card_buffer = card
+}
+
+
+function renderChatMessages(messages) {
+  let html = ""
+  for (let i = 0; i < messages.length; ++i) {
+      html += `<div class="chat-bubble">${escapeHtml(messages[i])}</div>`
+  }
+  return html
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
+function updateChatThread(messages) {
+  const chatThread = document.querySelector("#chat-thread")
+  if (!chatThread) {
+      return
+  }
+  chatThread.innerHTML = renderChatMessages(messages)
+  chatThread.scrollTop = chatThread.scrollHeight
+}
+
+
+function readAction() {
+  const chatForm = document.querySelector("#chat-box-form")
+  const chatMessageInput = document.querySelector("#chat-message")
+  if (chatForm && chatMessageInput) {
+    chatForm.addEventListener("submit", (event) => {
+      event.preventDefault()
+      const actionMessage = chatMessageInput.value.trim()
+      if (!actionMessage) {
+          return
+      }
+
+      if (!gameState) {
+        return
+      }
+
+      if (!Array.isArray(gameState.actionMessages)) {
+        gameState.actionMessages = []
+      }
+
+      gameState.actionMessages.push(actionMessage)
+      updateChatThread(gameState.actionMessages)
+
+      chatMessageInput.value = ""
+    })
+  }
 }
 
 // /**

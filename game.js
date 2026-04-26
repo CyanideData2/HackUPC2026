@@ -1,5 +1,4 @@
 import { Card } from './card.js'
-import { RenderScene } from './ui.js'
 import Deck from './deck.js'
 
 /**
@@ -62,6 +61,7 @@ class GameState {
     this.handCount = []
     /** @type {Deck}*/
     this.deck = deck
+    this.actionMessages = []
   }
   startGame() {
     this.reset()
@@ -122,6 +122,25 @@ class GameState {
     return { valid: true }
   }
 
+  verifyAction(card) {
+    if (!Array.isArray(this.actionMessages)) {
+      return { valid: false, reason: 'Missing action text' }
+    }
+
+    console.log('hola')
+
+    if (this.playedCards.length == 0) {
+      return {valid : true}
+    }
+
+    const action = this.actionMessages[this.actionMessages.length - 1]
+    if (typeof action !== 'string' || !action.trim()) {
+      return { valid: false, reason: 'Action text is required' }
+    }
+
+    return { valid: true }
+  }
+
   /**
    * Checks if a peer can vote
    */
@@ -134,14 +153,20 @@ class GameState {
   /**
    * Attempts to submit a card for the current turn
    */
-  submitCard(card, playerId, operation) {
+  submitCard(card, playerId, operation, actionMessages = []) {
     this.pendingCard = card
     this.pendingPeer = playerId
     this.pendingOperation = operation
+    this.actionMessages = actionMessages
 
     const result = this.verifyTurn(card, playerId).valid
     if (!result) {
       return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
+    }
+
+    const actionResult = this.verifyAction(card)
+    if (!actionResult.valid) {
+      return { accepted: false, reason: actionResult.reason || 'Invalid action' }
     }
 
     this.votes.clear()

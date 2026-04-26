@@ -8,8 +8,8 @@ const SUITS = ["hearts", "diamonds", "clubs", "spades"]
     */
 function RenderScene(state) {
     const gameHand = document.querySelector("#game-hand")
-    if (!Array.isArray(state.localMessages)) {
-        state.localMessages = []
+    if (!Array.isArray(state.actionMessages)) {
+        state.actionMessages = []
     }
     // Render a chat box at the right of the hand so that the 
     // active player can type the action they want to perform 
@@ -18,7 +18,7 @@ function RenderScene(state) {
     // when clicked.
 
     const chatBoxString = `        
-        <div id="chat-thread" class="chat-thread">${renderChatMessages(state.localMessages)}</div>
+        <div id="chat-thread" class="chat-thread">${renderChatMessages(state.actionMessages)}</div>
         <form id="chat-box-form">
             <button type="submit" id="send-message-button">Send</button>
             <input
@@ -109,22 +109,6 @@ function RenderScene(state) {
         })
     }
 
-    const chatForm = document.querySelector("#chat-box-form")
-    const chatMessageInput = document.querySelector("#chat-message")
-    if (chatForm && chatMessageInput) {
-        chatForm.addEventListener("submit", (event) => {
-            event.preventDefault()
-            const message = chatMessageInput.value.trim()
-            if (!message) {
-                return
-            }
-
-            state.localMessages.push(message)
-            updateChatThread(state.localMessages)
-
-            chatMessageInput.value = ""
-        })
-    }
 }
 
 function updateChatThread(messages) {
