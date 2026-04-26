@@ -39,8 +39,6 @@ import Deck from './deck.js'
  * @param {string} id 
  * @param {string[]} actions
  */
-function checkRules(id, actions) {
-}
 
 class GameState {
   /** @param {Deck} deck */
@@ -87,18 +85,12 @@ class GameState {
 
   }
 
-  /**
-   * Gets the current player's ID
-   */
-  get currentPlayer() {
-    return this.peerIds[this.currentPlayerIndex]
-  }
 
-  /**
-   * Checks if it's the local peer's turn
-   */
-  get isMyTurn() {
-    return this.currentPlayer === this.myPosition
+  playCard(position){
+		const current = this.hand[position]
+		this.hand.splice(position, 1)
+    this.handCount[this.myPosition] -=1
+    this.playedCards.push(current)
   }
 
   /**
@@ -116,6 +108,7 @@ class GameState {
    * @param {Play} play 
    */
   verifyTurn(play, playerId) {
+    console.log(this, playerId)
     const card = play.card
     if (playerId !== this.currentPlayer) {
       return { valid: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
@@ -145,7 +138,7 @@ class GameState {
    */
   submitCard(card, playerId) {
     if (!this.verifyTurn(card, playerId).valid) {
-      return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayer}` }
+      return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
     }
 
     this.pendingCard = card
