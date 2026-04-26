@@ -78,7 +78,7 @@ main {
 #game-board {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
   gap: 0.5rem;
   width: 100vw;
   height: 420px;
@@ -220,6 +220,33 @@ main {
 
 .hand-chat {
   min-width: 240px;
+  width: min(320px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chat-thread {
+  height: 165px;
+  overflow-y: auto;
+  background: #071e08;
+  border: 1px solid #b0d94466;
+  border-radius: 10px;
+  padding: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.chat-bubble {
+  align-self: flex-end;
+  max-width: 90%;
+  word-break: break-word;
+  background: #145f19;
+  border: 1px solid #9ad43d88;
+  color: #ecffd8;
+  border-radius: 9px;
+  padding: 0.4rem 0.55rem;
 }
 
 #chat-box-form {

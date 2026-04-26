@@ -37,12 +37,6 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
 Then restart the terminal.
 
-### Run tests
-
-```bash
-npm test
-```
-
 ## Decisions
 
 - The game must not use servers, but rather be peer to peer, because

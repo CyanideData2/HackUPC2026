@@ -8,6 +8,9 @@ const SUITS = ["hearts", "diamonds", "clubs", "spades"]
     */
 function RenderScene(state) {
     const gameHand = document.querySelector("#game-hand")
+    if (!Array.isArray(state.localMessages)) {
+        state.localMessages = []
+    }
     // Render a chat box at the right of the hand so that the 
     // active player can type the action they want to perform 
     // with the card they want to play. 
@@ -15,6 +18,7 @@ function RenderScene(state) {
     // when clicked.
 
     const chatBoxString = `        
+        <div id="chat-thread" class="chat-thread">${renderChatMessages(state.localMessages)}</div>
         <form id="chat-box-form">
             <button type="submit" id="send-message-button">Send</button>
             <input
@@ -115,22 +119,38 @@ function RenderScene(state) {
                 return
             }
 
-            if (typeof state.handleChatAction === "function") {
-                state.handleChatAction(message)
-            }
-
-            if (typeof document.dispatchEvent === "function" && typeof CustomEvent === "function") {
-                document.dispatchEvent(new CustomEvent("game:action-message", {
-                    detail: {
-                        message,
-                        playerId: state.myPosition
-                    }
-                }))
-            }
+            state.localMessages.push(message)
+            updateChatThread(state.localMessages)
 
             chatMessageInput.value = ""
         })
     }
+}
+
+function updateChatThread(messages) {
+    const chatThread = document.querySelector("#chat-thread")
+    if (!chatThread) {
+        return
+    }
+    chatThread.innerHTML = renderChatMessages(messages)
+    chatThread.scrollTop = chatThread.scrollHeight
+}
+
+function renderChatMessages(messages) {
+    let html = ""
+    for (let i = 0; i < messages.length; ++i) {
+        html += `<div class="chat-bubble">${escapeHtml(messages[i])}</div>`
+    }
+    return html
+}
+
+function escapeHtml(text) {
+    return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;")
 }
 
 function getRemainingDeckCount(state) {
