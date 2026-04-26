@@ -94,7 +94,11 @@ function RenderScene(state) {
             }
             state.hand.push(generateLocalDrawCard(state))
 
-            if (typeof state.advanceTurn === "function" && state.peerIds.length > 0) {
+            if (
+                typeof state.advanceTurn === "function"
+                && Array.isArray(state.peerIds)
+                && state.peerIds.length > 0
+            ) {
                 state.advanceTurn()
             }
             RenderScene(state)
