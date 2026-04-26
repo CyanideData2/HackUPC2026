@@ -235,10 +235,10 @@ function handleVote(voterId, data) {
       rank: card.rank,
       suit: card.suit
     })
-    hostingVote = false
   }
 
-  if (voteCount >= swarm.connections.size + 1) {
+  if (voteCount >= swarm.connections.size ) {
+    hostingVote = false
     const resolved = gameState.resolveTurn()
     reRender()
   }

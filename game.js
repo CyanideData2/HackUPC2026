@@ -135,14 +135,15 @@ class GameState {
    * Attempts to submit a card for the current turn
    */
   submitCard(card, playerId, operation) {
+    this.pendingCard = card
+    this.pendingPeer = playerId
+    this.pendingOperation = operation
+
     const result = this.verifyTurn(card, playerId).valid
     if (!result) {
       return { accepted: false, reason: `Not your turn. Current turn: ${this.currentPlayerIndex}` }
     }
 
-    this.pendingCard = card
-    this.pendingPeer = playerId
-    this.pendingOperation = operation
     this.votes.clear()
     this.votes.set(playerId, 'yes')
 
